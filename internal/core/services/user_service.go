@@ -2,9 +2,9 @@ package services
 
 import (
 	"context"
-	"errors"
 
 	"github.com/Caixetadev/snippet/internal/core/domain"
+	apperr "github.com/Caixetadev/snippet/internal/core/error"
 	"github.com/Caixetadev/snippet/internal/validation"
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
@@ -24,13 +24,12 @@ func NewUserService(userRepository domain.UserRepository, validation validation.
 
 func (su *UserService) Create(ctx context.Context, input *domain.User) error {
 	if err := su.validation.Validate(input); err != nil {
-		// return nil, errors.BadRequest("")
-		return errors.New("BadRequest")
+		return apperr.BadRequest
 	}
 
 	encryptedPassword, err := bcrypt.GenerateFromPassword([]byte(input.Password), bcrypt.DefaultCost)
 	if err != nil {
-		// return nil, errors.InternalServerError("")
+		return apperr.ServerError
 	}
 
 	user := domain.User{
@@ -42,7 +41,7 @@ func (su *UserService) Create(ctx context.Context, input *domain.User) error {
 
 	err = su.userRepository.Create(ctx, &user)
 	if err != nil {
-		return err
+		return apperr.ServerError
 	}
 
 	return nil

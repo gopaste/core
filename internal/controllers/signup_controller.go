@@ -36,7 +36,7 @@ func (lc *SignupController) Signup(c *gin.Context) {
 
 	err = lc.UserService.Create(c, &payload)
 	if err != nil {
-		c.Error(error.ServerError)
+		c.Error(err)
 		return
 	}
 
