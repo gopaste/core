@@ -7,6 +7,7 @@ import (
 	"github.com/Caixetadev/snippet/config"
 	"github.com/Caixetadev/snippet/internal/app"
 	"github.com/Caixetadev/snippet/internal/infra/db/postgres"
+	"github.com/Caixetadev/snippet/internal/middleware"
 	"github.com/Caixetadev/snippet/internal/validation"
 	"github.com/gin-gonic/gin"
 	validatorv10 "github.com/go-playground/validator/v10"
@@ -29,7 +30,9 @@ func main() {
 
 	router := gin.Default()
 
+	router.Use(middleware.ErrorHandler())
+
 	app.Run(cfg, db, router, validation)
 
-	router.Run()
+	router.Run(":8080")
 }
