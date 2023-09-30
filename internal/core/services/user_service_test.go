@@ -73,4 +73,26 @@ func TestCreate(t *testing.T) {
 
 		assert.Equal(t, apperr.ServerError, err)
 	})
+
+
+	t.Run("should encrypt password using BcryptPasswordHasher", func(t *testing.T) {
+		mockRepo := new(mocks.UserRepository)
+
+		mockRepo.On("Create", mock.Anything, mock.Anything).Return(nil)
+
+		userService := NewUserService(mockRepo, validation.NewValidator(validatorv10.New()), &domain.BcryptPasswordHasher{})
+
+		ctx := context.TODO()
+		input := &domain.User{
+			Name:     "John",
+			Email:    "john@example.com",
+			Password: "password",
+		}
+
+		err := userService.Create(ctx, input)
+
+		assert.Nil(t, err)
+
+		assert.NotEqual(t, "password", input.Password)
+	})
 }
