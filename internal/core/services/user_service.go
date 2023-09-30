@@ -13,12 +13,14 @@ import (
 type UserService struct {
 	userRepository domain.UserRepository
 	validation     validation.Validator
+	passwordHasher domain.PasswordHasher
 }
 
-func NewUserService(userRepository domain.UserRepository, validation validation.Validator) *UserService {
+func NewUserService(userRepository domain.UserRepository, validation validation.Validator, passwordHasher domain.PasswordHasher) *UserService {
 	return &UserService{
 		userRepository: userRepository,
 		validation:     validation,
+		passwordHasher: passwordHasher,
 	}
 }
 
@@ -27,19 +29,15 @@ func (su *UserService) Create(ctx context.Context, input *domain.User) error {
 		return apperr.BadRequest
 	}
 
-	encryptedPassword, err := bcrypt.GenerateFromPassword([]byte(input.Password), bcrypt.DefaultCost)
+	encryptedPassword, err := su.passwordHasher.GenerateFromPassword([]byte(input.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return apperr.ServerError
 	}
 
-	user := domain.User{
-		ID:       uuid.New(),
-		Name:     input.Name,
-		Email:    input.Email,
-		Password: string(encryptedPassword),
-	}
+	input.ID = uuid.New()
+	input.Password = string(encryptedPassword)
 
-	err = su.userRepository.Create(ctx, &user)
+	err = su.userRepository.Create(ctx, input)
 	if err != nil {
 		return apperr.ServerError
 	}
