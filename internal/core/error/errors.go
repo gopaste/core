@@ -1,6 +1,16 @@
 package error
 
-import "fmt"
+import (
+	"fmt"
+	"net/http"
+)
+
+var (
+	BadRequest        = NewHttpError("Bad request occurred", "Missing required parameters", http.StatusBadRequest)
+	NotFound          = NewHttpError("Resource not found", "The requested resource does not exist", http.StatusNotFound)
+	ServerError       = NewHttpError("Internal server error", "An unexpected error occurred on the server", http.StatusInternalServerError)
+	UserConflictError = NewHttpError("User conflict", "A user with the same email already exists", http.StatusConflict)
+)
 
 type Http struct {
 	Description string `json:"description,omitempty"`
