@@ -8,7 +8,3 @@ type LoginRequest struct {
 type LoginResponse struct {
 	AccessToken string `json:"accessToken"`
 }
-
-type LoginService interface {
-	GetUserByEmail(email string) (*User, error)
-}
