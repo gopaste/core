@@ -74,7 +74,6 @@ func TestCreate(t *testing.T) {
 		assert.Equal(t, apperr.ServerError, err)
 	})
 
-
 	t.Run("should encrypt password using BcryptPasswordHasher", func(t *testing.T) {
 		mockRepo := new(mocks.UserRepository)
 
@@ -94,5 +93,29 @@ func TestCreate(t *testing.T) {
 		assert.Nil(t, err)
 
 		assert.NotEqual(t, "password", input.Password)
+	})
+
+	t.Run("should return ServerError when password encryption fails", func(t *testing.T) {
+		mockRepo := new(mocks.UserRepository)
+
+		mockRepo.On("Create", mock.Anything, mock.Anything).Return(nil)
+
+		mockPasswordHasher := new(mocks.PasswordHasher)
+		mockPasswordHasher.On("GenerateFromPassword", mock.AnythingOfType("[]uint8"), mock.AnythingOfType("int")).
+			Return([]byte(""), errors.New("error"))
+
+		userService := NewUserService(mockRepo, validation.NewValidator(validatorv10.New()), mockPasswordHasher)
+
+		ctx := context.TODO()
+		input := &domain.User{
+			Name:     "John",
+			Email:    "john@example.com",
+			Password: "password",
+		}
+
+		err := userService.Create(ctx, input)
+
+		assert.NotNil(t, err)
+		assert.Equal(t, apperr.ServerError, err)
 	})
 }
