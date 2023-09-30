@@ -10,12 +10,19 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-func NewLoginRouter(cfg *config.Config, db *pgxpool.Pool, group *gin.RouterGroup, validation validation.Validator) {
+func NewAuthRouter(cfg *config.Config, db *pgxpool.Pool, group *gin.RouterGroup, validation validation.Validator) {
 	ur := repository.NewUserRepository(db)
-	lc := &controllers.LoginController{
-		LoginService: services.NewLoginService(ur, validation),
-		Env:          cfg,
+
+	lc := &controllers.SigninController{
+		UserService: services.NewUserService(ur, validation),
+		Env:         cfg,
 	}
 
-	group.POST("/hello", lc.Login)
+	sc := &controllers.SignupController{
+		UserService: services.NewUserService(ur, validation),
+		Env:         cfg,
+	}
+
+	group.POST("/signup", sc.Signup)
+	group.POST("/signin", lc.Signin)
 }
