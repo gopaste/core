@@ -18,5 +18,10 @@ func New(url string) (*pgxpool.Pool, error) {
 		return nil, fmt.Errorf("postgres - NewPostgres - NewWithConfig: %w", err)
 	}
 
+	err = db.Ping(context.Background())
+	if err != nil {
+		return nil, err
+	}
+
 	return db, nil
 }
