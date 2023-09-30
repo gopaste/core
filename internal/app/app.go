@@ -11,5 +11,5 @@ import (
 func Run(cfg *config.Config, db *pgxpool.Pool, router *gin.Engine, validation validation.Validator) {
 	publicRouter := router.Group("")
 
-	routes.NewLoginRouter(cfg, db, publicRouter, validation)
+	routes.NewAuthRouter(cfg, db, publicRouter, validation)
 }
