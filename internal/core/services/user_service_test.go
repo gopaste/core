@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"errors"
 	"testing"
 
 	"github.com/Caixetadev/snippet/internal/core/domain"
@@ -52,5 +53,24 @@ func TestCreate(t *testing.T) {
 		err := userService.Create(ctx, input)
 
 		assert.Equal(t, apperr.BadRequest, err)
+	})
+
+	t.Run("should return ServerError when userRepository fails", func(t *testing.T) {
+		mockRepo := new(mocks.UserRepository)
+
+		mockRepo.On("Create", mock.Anything, mock.Anything).Return(errors.New(""))
+
+		userService := NewUserService(mockRepo, validation.NewValidator(validatorv10.New()), &domain.BcryptPasswordHasher{})
+
+		ctx := context.TODO()
+		input := &domain.User{
+			Name:     "John",
+			Email:    "john@example.com",
+			Password: "123",
+		}
+
+		err := userService.Create(ctx, input)
+
+		assert.Equal(t, apperr.ServerError, err)
 	})
 }
