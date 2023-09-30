@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/Caixetadev/snippet/internal/core/domain"
+	apperr "github.com/Caixetadev/snippet/internal/core/error"
 	"github.com/Caixetadev/snippet/internal/mocks"
 	"github.com/Caixetadev/snippet/internal/validation"
 	"github.com/stretchr/testify/assert"
@@ -33,5 +34,23 @@ func TestCreate(t *testing.T) {
 		assert.Nil(t, err)
 
 		mockRepo.AssertCalled(t, "Create", ctx, mock.AnythingOfType("*domain.User"))
+	})
+
+	t.Run("should return BadRequest when validation fails", func(t *testing.T) {
+		mockRepo := new(mocks.UserRepository)
+
+		mockRepo.On("Create", mock.Anything, mock.Anything).Return(nil)
+
+		userService := NewUserService(mockRepo, validation.NewValidator(validatorv10.New()), nil)
+
+		ctx := context.TODO()
+		input := &domain.User{
+			Name:  "John",
+			Email: "john@example.com",
+		}
+
+		err := userService.Create(ctx, input)
+
+		assert.Equal(t, apperr.BadRequest, err)
 	})
 }
