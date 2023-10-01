@@ -16,7 +16,11 @@ type UserService struct {
 	passwordHasher domain.PasswordHasher
 }
 
-func NewUserService(userRepository domain.UserRepository, validation validation.Validator, passwordHasher domain.PasswordHasher) *UserService {
+func NewUserService(
+	userRepository domain.UserRepository,
+	validation validation.Validator,
+	passwordHasher domain.PasswordHasher,
+) *UserService {
 	return &UserService{
 		userRepository: userRepository,
 		validation:     validation,

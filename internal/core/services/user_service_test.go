@@ -19,7 +19,11 @@ func TestCreate(t *testing.T) {
 	t.Run("should create user", func(t *testing.T) {
 		mockRepo := new(mocks.UserRepository)
 
-		userService := NewUserService(mockRepo, validation.NewValidator(validatorv10.New()), &domain.BcryptPasswordHasher{})
+		userService := NewUserService(
+			mockRepo,
+			validation.NewValidator(validatorv10.New()),
+			&domain.BcryptPasswordHasher{},
+		)
 
 		ctx := context.TODO()
 		input := &domain.User{
@@ -60,7 +64,11 @@ func TestCreate(t *testing.T) {
 
 		mockRepo.On("Create", mock.Anything, mock.Anything).Return(errors.New(""))
 
-		userService := NewUserService(mockRepo, validation.NewValidator(validatorv10.New()), &domain.BcryptPasswordHasher{})
+		userService := NewUserService(
+			mockRepo,
+			validation.NewValidator(validatorv10.New()),
+			&domain.BcryptPasswordHasher{},
+		)
 
 		ctx := context.TODO()
 		input := &domain.User{
@@ -79,7 +87,11 @@ func TestCreate(t *testing.T) {
 
 		mockRepo.On("Create", mock.Anything, mock.Anything).Return(nil)
 
-		userService := NewUserService(mockRepo, validation.NewValidator(validatorv10.New()), &domain.BcryptPasswordHasher{})
+		userService := NewUserService(
+			mockRepo,
+			validation.NewValidator(validatorv10.New()),
+			&domain.BcryptPasswordHasher{},
+		)
 
 		ctx := context.TODO()
 		input := &domain.User{
@@ -157,7 +169,11 @@ func TestUserExistsByEmail(t *testing.T) {
 		mockRepo := new(mocks.UserRepository)
 		mockRepo.On("UserExistsByEmail", mock.Anything, "test@example.com").Return(false, errors.New("database error"))
 
-		userService := NewUserService(mockRepo, validation.NewValidator(validatorv10.New()), &domain.BcryptPasswordHasher{})
+		userService := NewUserService(
+			mockRepo,
+			validation.NewValidator(validatorv10.New()),
+			&domain.BcryptPasswordHasher{},
+		)
 
 		ctx := context.TODO()
 		email := "test@example.com"

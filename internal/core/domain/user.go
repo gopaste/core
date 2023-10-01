@@ -8,9 +8,9 @@ import (
 
 type User struct {
 	ID       uuid.UUID `json:"id,omitempty"`
-	Name     string    `json:"name" validate:"required" binding:"required"`
-	Email    string    `json:"email" validate:"required,email" binding:"required"`
-	Password string    `json:"password" validate:"required" binding:"required"`
+	Name     string    `json:"name"         validate:"required"       binding:"required"`
+	Email    string    `json:"email"        validate:"required,email" binding:"required"`
+	Password string    `json:"password"     validate:"required"       binding:"required"`
 }
 
 type UserRepository interface {
