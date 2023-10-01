@@ -119,3 +119,52 @@ func TestCreate(t *testing.T) {
 		assert.Equal(t, apperr.ServerError, err)
 	})
 }
+
+func TestUserExistsByEmail(t *testing.T) {
+	t.Run("should return true if the user with the given email exists", func(t *testing.T) {
+		mockRepo := new(mocks.UserRepository)
+
+		mockRepo.On("UserExistsByEmail", mock.Anything, "test@example.com").Return(true, nil)
+
+		userService := NewUserService(mockRepo, validation.NewValidator(validatorv10.New()), nil)
+
+		ctx := context.TODO()
+		email := "test@example.com"
+
+		exists, err := userService.UserExistsByEmail(ctx, email)
+
+		assert.Nil(t, err)
+		assert.True(t, exists)
+	})
+
+	t.Run("should return false if the user with the specified email does not exist", func(t *testing.T) {
+		mockRepo := new(mocks.UserRepository)
+
+		mockRepo.On("UserExistsByEmail", mock.Anything, "test@example.com").Return(false, nil)
+
+		userService := NewUserService(mockRepo, validation.NewValidator(validatorv10.New()), nil)
+
+		ctx := context.TODO()
+		email := "test@example.com"
+
+		exists, err := userService.UserExistsByEmail(ctx, email)
+
+		assert.Nil(t, err)
+		assert.False(t, exists)
+	})
+
+	t.Run("should return an error when the userRepository fails", func(t *testing.T) {
+		mockRepo := new(mocks.UserRepository)
+		mockRepo.On("UserExistsByEmail", mock.Anything, "test@example.com").Return(false, errors.New("database error"))
+
+		userService := NewUserService(mockRepo, validation.NewValidator(validatorv10.New()), &domain.BcryptPasswordHasher{})
+
+		ctx := context.TODO()
+		email := "test@example.com"
+
+		exists, err := userService.UserExistsByEmail(ctx, email)
+
+		assert.NotNil(t, err)
+		assert.False(t, exists)
+	})
+}
