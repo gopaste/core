@@ -7,6 +7,7 @@ import (
 	apperr "github.com/Caixetadev/snippet/internal/core/error"
 	"github.com/Caixetadev/snippet/internal/validation"
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -50,7 +51,17 @@ func (su *UserService) Create(ctx context.Context, input *domain.User) error {
 }
 
 func (ls *UserService) GetUserByEmail(ctx context.Context, email string) (*domain.User, error) {
-	return ls.userRepository.GetUserByEmail(ctx, email)
+	user, err := ls.userRepository.GetUserByEmail(ctx, email)
+
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			return nil, apperr.NotFound
+		}
+
+		return nil, apperr.ServerError
+	}
+
+	return user, nil
 }
 
 func (ls *UserService) UserExistsByEmail(ctx context.Context, email string) (bool, error) {
