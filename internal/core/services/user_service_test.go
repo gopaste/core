@@ -235,7 +235,6 @@ func TestGetUserByEmail(t *testing.T) {
 		repoMock.AssertExpectations(t)
 	})
 
-
 	t.Run("should return ServerError when the GetUserByEmail repository fails", func(t *testing.T) {
 		repoMock := new(mocks.UserRepository)
 
