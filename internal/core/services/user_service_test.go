@@ -184,3 +184,32 @@ func TestUserExistsByEmail(t *testing.T) {
 		assert.False(t, exists)
 	})
 }
+
+func TestGetUserByEmail(t *testing.T) {
+	t.Run("should return a user with the correct email", func(t *testing.T) {
+		repoMock := new(mocks.UserRepository)
+
+		expectedUser := &domain.User{
+			Name:     "test",
+			Email:    "test@example.com",
+			Password: "123",
+		}
+
+		repoMock.On("GetUserByEmail", mock.Anything, "test@example.com").Return(expectedUser, nil)
+
+		userService := &UserService{
+			userRepository: repoMock,
+		}
+
+		ctx := context.TODO()
+		email := "test@example.com"
+		user, err := userService.GetUserByEmail(ctx, email)
+
+		assert.NoError(t, err)
+		assert.Equal(t, expectedUser, user)
+
+		repoMock.AssertCalled(t, "GetUserByEmail", mock.Anything, "test@example.com")
+
+		repoMock.AssertExpectations(t)
+	})
+}
