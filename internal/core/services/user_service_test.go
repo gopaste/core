@@ -234,4 +234,26 @@ func TestGetUserByEmail(t *testing.T) {
 
 		repoMock.AssertExpectations(t)
 	})
+
+
+	t.Run("should return ServerError when the GetUserByEmail repository fails", func(t *testing.T) {
+		repoMock := new(mocks.UserRepository)
+
+		repoMock.On("GetUserByEmail", mock.Anything, "test@example.com").Return((*domain.User)(nil), errors.New("error"))
+
+		userService := &UserService{
+			userRepository: repoMock,
+		}
+
+		ctx := context.TODO()
+		email := "test@example.com"
+		user, err := userService.GetUserByEmail(ctx, email)
+
+		assert.Nil(t, user)
+		assert.Equal(t, apperr.ServerError, err)
+
+		repoMock.AssertCalled(t, "GetUserByEmail", mock.Anything, "test@example.com")
+
+		repoMock.AssertExpectations(t)
+	})
 }
