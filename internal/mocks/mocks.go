@@ -17,7 +17,8 @@ func (m *UserRepository) Create(ctx context.Context, user *domain.User) error {
 }
 
 func (m *UserRepository) GetUserByEmail(ctx context.Context, email string) (*domain.User, error) {
-	return nil, nil
+	args := m.Called(ctx, email)
+	return args.Get(0).(*domain.User), args.Error(1)
 }
 
 func (m *UserRepository) UserExistsByEmail(ctx context.Context, email string) (bool, error) {
