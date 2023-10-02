@@ -9,6 +9,7 @@ import (
 	apperr "github.com/Caixetadev/snippet/internal/core/error"
 	"github.com/Caixetadev/snippet/internal/mocks"
 	"github.com/Caixetadev/snippet/internal/validation"
+	"github.com/jackc/pgx/v5"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
@@ -207,6 +208,27 @@ func TestGetUserByEmail(t *testing.T) {
 
 		assert.NoError(t, err)
 		assert.Equal(t, expectedUser, user)
+
+		repoMock.AssertCalled(t, "GetUserByEmail", mock.Anything, "test@example.com")
+
+		repoMock.AssertExpectations(t)
+	})
+
+	t.Run("should return error 404 if the user with the specified email does not exist", func(t *testing.T) {
+		repoMock := new(mocks.UserRepository)
+
+		repoMock.On("GetUserByEmail", mock.Anything, "test@example.com").Return((*domain.User)(nil), pgx.ErrNoRows)
+
+		userService := &UserService{
+			userRepository: repoMock,
+		}
+
+		ctx := context.TODO()
+		email := "test@example.com"
+		user, err := userService.GetUserByEmail(ctx, email)
+
+		assert.Nil(t, user)
+		assert.Equal(t, apperr.NotFound, err)
 
 		repoMock.AssertCalled(t, "GetUserByEmail", mock.Anything, "test@example.com")
 
