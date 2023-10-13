@@ -5,7 +5,9 @@ import (
 )
 
 type Config struct {
-	DBURL string `mapstructure:"PG_URL"`
+	DBURL                 string `mapstructure:"PG_URL"`
+	AccessTokenSecret     string `mapstructure:"ACCESS_TOKEN_SECRET"`
+	AccessTokenExpiryHour int    `mapstructure:"ACCESS_TOKEN_EXPIRY_HOUR"`
 }
 
 func NewConfig(path string) (config *Config, err error) {
