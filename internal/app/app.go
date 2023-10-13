@@ -3,7 +3,7 @@ package app
 import (
 	"github.com/Caixetadev/snippet/config"
 	"github.com/Caixetadev/snippet/internal/routes"
-	"github.com/Caixetadev/snippet/internal/validation"
+	"github.com/Caixetadev/snippet/pkg/validation"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
