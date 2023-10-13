@@ -8,251 +8,192 @@ import (
 	"github.com/Caixetadev/snippet/internal/core/domain"
 	apperr "github.com/Caixetadev/snippet/internal/core/error"
 	"github.com/Caixetadev/snippet/internal/mocks"
-	"github.com/Caixetadev/snippet/internal/validation"
 	"github.com/jackc/pgx/v5"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-
-	validatorv10 "github.com/go-playground/validator/v10"
+	"github.com/stretchr/testify/suite"
 )
 
-func TestCreate(t *testing.T) {
-	t.Run("should create user", func(t *testing.T) {
-		mockRepo := new(mocks.UserRepository)
-
-		userService := NewUserService(
-			mockRepo,
-			validation.NewValidator(validatorv10.New()),
-			&domain.BcryptPasswordHasher{},
-		)
-
-		ctx := context.TODO()
-		input := &domain.User{
-			Name:     "John",
-			Email:    "john@example.com",
-			Password: "password",
-		}
-
-		mockRepo.On("Create", ctx, mock.AnythingOfType("*domain.User")).Return(nil)
-
-		err := userService.Create(ctx, input)
-
-		assert.Nil(t, err)
-
-		mockRepo.AssertCalled(t, "Create", ctx, mock.AnythingOfType("*domain.User"))
-	})
-
-	t.Run("should return BadRequest when validation fails", func(t *testing.T) {
-		mockRepo := new(mocks.UserRepository)
-
-		mockRepo.On("Create", mock.Anything, mock.Anything).Return(nil)
-
-		userService := NewUserService(mockRepo, validation.NewValidator(validatorv10.New()), nil)
-
-		ctx := context.TODO()
-		input := &domain.User{
-			Name:  "John",
-			Email: "john@example.com",
-		}
-
-		err := userService.Create(ctx, input)
-
-		assert.Equal(t, apperr.BadRequest, err)
-	})
-
-	t.Run("should return ServerError when userRepository fails", func(t *testing.T) {
-		mockRepo := new(mocks.UserRepository)
-
-		mockRepo.On("Create", mock.Anything, mock.Anything).Return(errors.New(""))
-
-		userService := NewUserService(
-			mockRepo,
-			validation.NewValidator(validatorv10.New()),
-			&domain.BcryptPasswordHasher{},
-		)
-
-		ctx := context.TODO()
-		input := &domain.User{
-			Name:     "John",
-			Email:    "john@example.com",
-			Password: "123",
-		}
-
-		err := userService.Create(ctx, input)
-
-		assert.Equal(t, apperr.ServerError, err)
-	})
-
-	t.Run("should encrypt password using BcryptPasswordHasher", func(t *testing.T) {
-		mockRepo := new(mocks.UserRepository)
-
-		mockRepo.On("Create", mock.Anything, mock.Anything).Return(nil)
-
-		userService := NewUserService(
-			mockRepo,
-			validation.NewValidator(validatorv10.New()),
-			&domain.BcryptPasswordHasher{},
-		)
-
-		ctx := context.TODO()
-		input := &domain.User{
-			Name:     "John",
-			Email:    "john@example.com",
-			Password: "password",
-		}
-
-		err := userService.Create(ctx, input)
-
-		assert.Nil(t, err)
-
-		assert.NotEqual(t, "password", input.Password)
-	})
-
-	t.Run("should return ServerError when password encryption fails", func(t *testing.T) {
-		mockRepo := new(mocks.UserRepository)
-
-		mockRepo.On("Create", mock.Anything, mock.Anything).Return(nil)
-
-		mockPasswordHasher := new(mocks.PasswordHasher)
-		mockPasswordHasher.On("GenerateFromPassword", mock.AnythingOfType("[]uint8"), mock.AnythingOfType("int")).
-			Return([]byte(""), errors.New("error"))
-
-		userService := NewUserService(mockRepo, validation.NewValidator(validatorv10.New()), mockPasswordHasher)
-
-		ctx := context.TODO()
-		input := &domain.User{
-			Name:     "John",
-			Email:    "john@example.com",
-			Password: "password",
-		}
-
-		err := userService.Create(ctx, input)
-
-		assert.NotNil(t, err)
-		assert.Equal(t, apperr.ServerError, err)
-	})
+type UserServiceTestSuite struct {
+	suite.Suite
+	mockRepo           *mocks.UserRepository
+	mockPasswordHasher *mocks.PasswordHasher
+	userService        *UserService
+	validation         *mocks.Validator
 }
 
-func TestUserExistsByEmail(t *testing.T) {
-	t.Run("should return true if the user with the given email exists", func(t *testing.T) {
-		mockRepo := new(mocks.UserRepository)
+func (suite *UserServiceTestSuite) SetupTest() {
+	suite.mockRepo = new(mocks.UserRepository)
+	suite.mockPasswordHasher = new(mocks.PasswordHasher)
+	suite.validation = new(mocks.Validator)
 
-		mockRepo.On("UserExistsByEmail", mock.Anything, "test@example.com").Return(true, nil)
-
-		userService := NewUserService(mockRepo, validation.NewValidator(validatorv10.New()), nil)
-
-		ctx := context.TODO()
-		email := "test@example.com"
-
-		exists, err := userService.UserExistsByEmail(ctx, email)
-
-		assert.Nil(t, err)
-		assert.True(t, exists)
-	})
-
-	t.Run("should return false if the user with the specified email does not exist", func(t *testing.T) {
-		mockRepo := new(mocks.UserRepository)
-
-		mockRepo.On("UserExistsByEmail", mock.Anything, "test@example.com").Return(false, nil)
-
-		userService := NewUserService(mockRepo, validation.NewValidator(validatorv10.New()), nil)
-
-		ctx := context.TODO()
-		email := "test@example.com"
-
-		exists, err := userService.UserExistsByEmail(ctx, email)
-
-		assert.Nil(t, err)
-		assert.False(t, exists)
-	})
-
-	t.Run("should return an error when the userRepository fails", func(t *testing.T) {
-		mockRepo := new(mocks.UserRepository)
-		mockRepo.On("UserExistsByEmail", mock.Anything, "test@example.com").Return(false, errors.New("database error"))
-
-		userService := NewUserService(
-			mockRepo,
-			validation.NewValidator(validatorv10.New()),
-			&domain.BcryptPasswordHasher{},
-		)
-
-		ctx := context.TODO()
-		email := "test@example.com"
-
-		exists, err := userService.UserExistsByEmail(ctx, email)
-
-		assert.NotNil(t, err)
-		assert.False(t, exists)
-	})
+	suite.userService = NewUserService(
+		suite.mockRepo,
+		suite.validation,
+		suite.mockPasswordHasher,
+	)
 }
 
-func TestGetUserByEmail(t *testing.T) {
-	t.Run("should return a user with the correct email", func(t *testing.T) {
-		repoMock := new(mocks.UserRepository)
+func TestUserServiceSuite(t *testing.T) {
+	suite.Run(t, new(UserServiceTestSuite))
+}
 
-		expectedUser := &domain.User{
-			Name:     "test",
-			Email:    "test@example.com",
-			Password: "123",
-		}
+func (suite *UserServiceTestSuite) TestCreate() {
+	ctx := context.TODO()
+	input := &domain.User{
+		Name:     "John",
+		Email:    "john@example.com",
+		Password: "password",
+	}
 
-		repoMock.On("GetUserByEmail", mock.Anything, "test@example.com").Return(expectedUser, nil)
+	suite.validation.On("Validate", input).Return(nil)
+	suite.mockPasswordHasher.On("GenerateFromPassword", mock.AnythingOfType("[]uint8"), mock.AnythingOfType("int")).Return([]byte("password_hashed"), nil)
+	suite.mockRepo.On("Create", ctx, mock.AnythingOfType("*domain.User")).Return(nil)
 
-		userService := &UserService{
-			userRepository: repoMock,
-		}
+	err := suite.userService.Create(ctx, input)
 
-		ctx := context.TODO()
-		email := "test@example.com"
-		user, err := userService.GetUserByEmail(ctx, email)
+	assert.Nil(suite.T(), err)
+	assert.NotEmpty(suite.T(), input.ID)
+	assert.Equal(suite.T(), "password_hashed", input.Password)
 
-		assert.NoError(t, err)
-		assert.Equal(t, expectedUser, user)
+	suite.mockRepo.AssertCalled(suite.T(), "Create", ctx, mock.AnythingOfType("*domain.User"))
+	suite.validation.AssertCalled(suite.T(), "Validate", input)
+	suite.mockPasswordHasher.AssertCalled(suite.T(), "GenerateFromPassword", mock.AnythingOfType("[]uint8"), mock.AnythingOfType("int"))
+}
 
-		repoMock.AssertCalled(t, "GetUserByEmail", mock.Anything, "test@example.com")
+func (suite *UserServiceTestSuite) TestValidationFails() {
+	ctx := context.TODO()
+	input := &domain.User{
+		Name:  "John",
+		Email: "john@example.com",
+	}
 
-		repoMock.AssertExpectations(t)
-	})
+	suite.validation.On("Validate", input).Return(errors.New("error"))
+	suite.mockRepo.On("Create", mock.Anything, mock.Anything).Return(nil)
+	err := suite.userService.Create(ctx, input)
 
-	t.Run("should return error 404 if the user with the specified email does not exist", func(t *testing.T) {
-		repoMock := new(mocks.UserRepository)
+	assert.Equal(suite.T(), apperr.BadRequest, err)
 
-		repoMock.On("GetUserByEmail", mock.Anything, "test@example.com").Return((*domain.User)(nil), pgx.ErrNoRows)
+	suite.mockRepo.AssertNotCalled(suite.T(), "Create", ctx, mock.AnythingOfType("*domain.User"))
 
-		userService := &UserService{
-			userRepository: repoMock,
-		}
+	suite.validation.AssertNumberOfCalls(suite.T(), "Validate", 1)
+}
 
-		ctx := context.TODO()
-		email := "test@example.com"
-		user, err := userService.GetUserByEmail(ctx, email)
+func (suite *UserServiceTestSuite) TestCreateWithUserRepositoryFailure() {
+	ctx := context.TODO()
+	input := &domain.User{
+		Name:     "John",
+		Email:    "john@example.com",
+		Password: "password",
+	}
 
-		assert.Nil(t, user)
-		assert.Equal(t, apperr.NotFound, err)
+	inputGenerateFromPassword := input.Password
 
-		repoMock.AssertCalled(t, "GetUserByEmail", mock.Anything, "test@example.com")
+	suite.mockRepo.On("Create", ctx, input).Return(errors.New("error"))
 
-		repoMock.AssertExpectations(t)
-	})
+	suite.validation.On("Validate", input).Return(nil)
 
-	t.Run("should return ServerError when the GetUserByEmail repository fails", func(t *testing.T) {
-		repoMock := new(mocks.UserRepository)
+	suite.mockPasswordHasher.On("GenerateFromPassword", []byte(inputGenerateFromPassword), 10).Return([]byte("password_hashed"), nil)
 
-		repoMock.On("GetUserByEmail", mock.Anything, "test@example.com").Return((*domain.User)(nil), errors.New("error"))
+	err := suite.userService.Create(ctx, input)
 
-		userService := &UserService{
-			userRepository: repoMock,
-		}
+	assert.Equal(suite.T(), apperr.ServerError, err)
 
-		ctx := context.TODO()
-		email := "test@example.com"
-		user, err := userService.GetUserByEmail(ctx, email)
+	suite.validation.AssertCalled(suite.T(), "Validate", input)
+	suite.mockRepo.AssertCalled(suite.T(), "Create", ctx, input)
+	suite.mockPasswordHasher.AssertCalled(suite.T(), "GenerateFromPassword", []byte(inputGenerateFromPassword), 10)
+}
 
-		assert.Nil(t, user)
-		assert.Equal(t, apperr.ServerError, err)
+func (suite *UserServiceTestSuite) TestCreate_ErrorOnHash() {
+	ctx := context.TODO()
+	input := &domain.User{
+		Name:     "John",
+		Email:    "john@example.com",
+		Password: "password",
+	}
 
-		repoMock.AssertCalled(t, "GetUserByEmail", mock.Anything, "test@example.com")
+	suite.validation.On("Validate", mock.Anything).Return(nil)
+	suite.mockPasswordHasher.On("GenerateFromPassword", mock.AnythingOfType("[]uint8"), mock.AnythingOfType("int")).Return([]byte(""), errors.New("error"))
+	suite.mockRepo.On("Create", ctx, mock.AnythingOfType("*domain.User")).Return(nil)
 
-		repoMock.AssertExpectations(t)
-	})
+	err := suite.userService.Create(ctx, input)
+
+	suite.Equal(apperr.ServerError, err)
+}
+
+func (suite *UserServiceTestSuite) TestGetUserByEmailExists() {
+	ctx := context.TODO()
+	input := "jhon@example.com"
+	output := &domain.User{
+		Name:     "John",
+		Email:    "john@example.com",
+		Password: "password",
+	}
+
+	suite.mockRepo.On("GetUserByEmail", ctx, input).Return(output, nil)
+
+	user, err := suite.userService.GetUserByEmail(ctx, input)
+
+	suite.Assert().Nil(err)
+	suite.Assert().Equal(output, user)
+
+	suite.mockRepo.AssertCalled(suite.T(), "GetUserByEmail", ctx, input)
+}
+
+func (suite *UserServiceTestSuite) TestGetUserByEmailNotExists() {
+	ctx := context.TODO()
+	input := "jhon@example.com"
+
+	suite.mockRepo.On("GetUserByEmail", ctx, input).Return(&domain.User{}, pgx.ErrNoRows)
+
+	user, err := suite.userService.GetUserByEmail(ctx, input)
+
+	suite.Assert().Nil(user)
+	suite.Assert().Equal(err, apperr.NotFound)
+
+	suite.mockRepo.AssertCalled(suite.T(), "GetUserByEmail", ctx, input)
+}
+
+func (suite *UserServiceTestSuite) TestGetUserByEmailWithRepositoryFails() {
+	ctx := context.TODO()
+	input := "jhon@example.com"
+
+	suite.mockRepo.On("GetUserByEmail", ctx, input).Return(&domain.User{}, errors.New("error"))
+
+	user, err := suite.userService.GetUserByEmail(ctx, input)
+
+	suite.Assert().Nil(user)
+	suite.Assert().Equal(err, apperr.ServerError)
+
+	suite.mockRepo.AssertCalled(suite.T(), "GetUserByEmail", ctx, input)
+}
+
+func (suite *UserServiceTestSuite) TestUserExistsByEmail() {
+	ctx := context.TODO()
+
+	input := "user@gmail.com"
+
+	suite.mockRepo.On("UserExistsByEmail", ctx, input).Return(true, nil)
+
+	exists, err := suite.userService.UserExistsByEmail(ctx, input)
+
+	suite.True(exists)
+	suite.Nil(err)
+
+	suite.mockRepo.AssertCalled(suite.T(), "UserExistsByEmail", ctx, input)
+}
+
+func (suite *UserServiceTestSuite) TestUserExistsByEmail_Error() {
+	ctx := context.TODO()
+
+	input := "user@gmail.com"
+
+	suite.mockRepo.On("UserExistsByEmail", ctx, input).Return(false, errors.New("error"))
+
+	exists, err := suite.userService.UserExistsByEmail(ctx, input)
+
+	suite.False(exists)
+	suite.NotNil(err)
+
+	suite.mockRepo.AssertCalled(suite.T(), "UserExistsByEmail", ctx, input)
 }

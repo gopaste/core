@@ -39,3 +39,12 @@ func (m *PasswordHasher) CompareHashAndPassword(hashedPassword, password []byte)
 	args := m.Called(hashedPassword, password)
 	return args.Error(1)
 }
+
+type Validator struct {
+	mock.Mock
+}
+
+func (v *Validator) Validate(obj interface{}) error {
+	arg := v.Called(obj)
+	return arg.Error(0)
+}

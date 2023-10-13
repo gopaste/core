@@ -8,7 +8,7 @@ import (
 	"github.com/Caixetadev/snippet/internal/app"
 	"github.com/Caixetadev/snippet/internal/infra/db/postgres"
 	"github.com/Caixetadev/snippet/internal/middleware"
-	"github.com/Caixetadev/snippet/internal/validation"
+	"github.com/Caixetadev/snippet/pkg/validation"
 	"github.com/gin-gonic/gin"
 	validatorv10 "github.com/go-playground/validator/v10"
 )
