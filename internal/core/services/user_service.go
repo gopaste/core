@@ -5,7 +5,8 @@ import (
 
 	"github.com/Caixetadev/snippet/internal/core/domain"
 	apperr "github.com/Caixetadev/snippet/internal/core/error"
-	"github.com/Caixetadev/snippet/internal/validation"
+	"github.com/Caixetadev/snippet/internal/token"
+	"github.com/Caixetadev/snippet/pkg/validation"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"golang.org/x/crypto/bcrypt"
@@ -29,12 +30,12 @@ func NewUserService(
 	}
 }
 
-func (su *UserService) Create(ctx context.Context, input *domain.User) error {
-	if err := su.validation.Validate(input); err != nil {
+func (us *UserService) Create(ctx context.Context, input *domain.User) error {
+	if err := us.validation.Validate(input); err != nil {
 		return apperr.BadRequest
 	}
 
-	encryptedPassword, err := su.passwordHasher.GenerateFromPassword([]byte(input.Password), bcrypt.DefaultCost)
+	encryptedPassword, err := us.passwordHasher.GenerateFromPassword([]byte(input.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return apperr.ServerError
 	}
@@ -42,7 +43,7 @@ func (su *UserService) Create(ctx context.Context, input *domain.User) error {
 	input.ID = uuid.New()
 	input.Password = string(encryptedPassword)
 
-	err = su.userRepository.Create(ctx, input)
+	err = us.userRepository.Create(ctx, input)
 	if err != nil {
 		return apperr.ServerError
 	}
@@ -50,8 +51,8 @@ func (su *UserService) Create(ctx context.Context, input *domain.User) error {
 	return nil
 }
 
-func (ls *UserService) GetUserByEmail(ctx context.Context, email string) (*domain.User, error) {
-	user, err := ls.userRepository.GetUserByEmail(ctx, email)
+func (us *UserService) GetUserByEmail(ctx context.Context, email string) (*domain.User, error) {
+	user, err := us.userRepository.GetUserByEmail(ctx, email)
 
 	if err != nil {
 		if err == pgx.ErrNoRows {
@@ -64,6 +65,10 @@ func (ls *UserService) GetUserByEmail(ctx context.Context, email string) (*domai
 	return user, nil
 }
 
-func (ls *UserService) UserExistsByEmail(ctx context.Context, email string) (bool, error) {
-	return ls.userRepository.UserExistsByEmail(ctx, email)
+func (us *UserService) UserExistsByEmail(ctx context.Context, email string) (bool, error) {
+	return us.userRepository.UserExistsByEmail(ctx, email)
+}
+
+func (us *UserService) CreateAccessToken(user *domain.User, secret string, expiry int) (accesstoken string, err error) {
+	return token.CreateAccessToken(user, secret, expiry)
 }
