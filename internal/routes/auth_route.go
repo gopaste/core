@@ -26,6 +26,6 @@ func NewAuthRouter(cfg *config.Config, db *pgxpool.Pool, group *gin.RouterGroup,
 		Env:         cfg,
 	}
 
-	group.POST("/signup", sc.Signup)
-	group.POST("/signin", lc.Signin)
+	group.POST("/auth/signup", sc.Signup)
+	group.POST("/auth/signin", lc.Signin)
 }
