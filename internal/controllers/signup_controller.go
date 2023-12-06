@@ -14,6 +14,15 @@ type SignupController struct {
 	Env         *config.Config
 }
 
+//	@Summary	Create account
+//	@Schemes
+//	@Description	Create a new user account
+//	@Tags			Auth
+//	@Accept			json
+//	@Produce		json
+//	@Param			request	body		domain.User	true	"User"
+//	@Success		200		{object}	domain.SignupResponse
+//	@Router			/auth/signup [post]
 func (lc *SignupController) Signup(c *gin.Context) {
 	var payload domain.User
 
@@ -40,5 +49,15 @@ func (lc *SignupController) Signup(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, "criado com sucesso")
+	accessToken, err := lc.UserService.CreateAccessToken(&payload, lc.Env.AccessTokenSecret, lc.Env.AccessTokenExpiryHour)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
+	signupResponse := domain.SignupResponse{
+		AccessToken: accessToken,
+	}
+
+	c.JSON(http.StatusOK, signupResponse)
 }
