@@ -72,3 +72,7 @@ func (us *UserService) UserExistsByEmail(ctx context.Context, email string) (boo
 func (us *UserService) CreateAccessToken(user *domain.User, secret string, expiry int) (accesstoken string, err error) {
 	return token.CreateAccessToken(user, secret, expiry)
 }
+
+func (us *UserService) CompareHashAndPassword(passwordInDatabase, passwordRequest string) error {
+	return us.passwordHasher.CompareHashAndPassword([]byte(passwordInDatabase), []byte(passwordRequest))
+}

@@ -25,4 +25,5 @@ type SignupService interface {
 	Create(ctx context.Context, user *User) error // Create(user *User) error
 	UserExistsByEmail(ctx context.Context, email string) (bool, error)
 	CreateAccessToken(user *User, secret string, expiry int) (string, error)
+	CompareHashAndPassword(passwordInDatabase, passwordRequest string) error
 }
