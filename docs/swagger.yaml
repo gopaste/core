@@ -1,5 +1,20 @@
 basePath: /api/v1
 definitions:
+  domain.SigninRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  domain.SigninResponse:
+    properties:
+      accessToken:
+        type: string
+    type: object
   domain.SignupResponse:
     properties:
       acessToken:
@@ -35,6 +50,28 @@ info:
   title: Swagger Example API
   version: "1.0"
 paths:
+  /auth/signin:
+    post:
+      consumes:
+      - application/json
+      description: authenticates a user
+      parameters:
+      - description: User
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/domain.SigninRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.SigninResponse'
+      summary: Authenticate user
+      tags:
+      - Auth
   /auth/signup:
     post:
       consumes:

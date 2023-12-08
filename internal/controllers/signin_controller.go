@@ -14,6 +14,15 @@ type SigninController struct {
 	Env         *config.Config
 }
 
+// @Summary	Authenticate user
+// @Schemes
+// @Description	authenticates a user
+// @Tags			Auth
+// @Accept			json
+// @Produce		json
+// @Param			request	body		domain.SigninRequest	true	"User"
+// @Success		200		{object}	domain.SigninResponse
+// @Router			/auth/signin [post]
 func (sc *SigninController) Signin(ctx *gin.Context) {
 	var payload domain.SigninRequest
 
