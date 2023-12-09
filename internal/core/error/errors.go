@@ -14,6 +14,8 @@ var (
 		http.StatusInternalServerError,
 	)
 	UserConflictError = NewHttpError("User conflict", "A user with the same email already exists", http.StatusConflict)
+
+	Unauthorized = NewHttpError("Unauthorized", "Authentication failed or missing credentials", http.StatusUnauthorized)
 )
 
 type Http struct {
