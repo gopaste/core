@@ -3,7 +3,6 @@ package services
 import (
 	"context"
 	"errors"
-	"fmt"
 	"testing"
 
 	"github.com/Caixetadev/snippet/internal/core/domain"
@@ -53,7 +52,6 @@ func (suite *UserServiceTestSuite) TestCreate() {
 	suite.mockRepo.On("Create", ctx, mock.AnythingOfType("*domain.User")).Return(nil)
 
 	user, err := suite.userService.Create(ctx, input)
-	fmt.Println(user)
 
 	assert.Nil(suite.T(), err)
 	assert.NotEmpty(suite.T(), user.ID)
@@ -154,7 +152,7 @@ func (suite *UserServiceTestSuite) TestGetUserByEmailNotExists() {
 	user, err := suite.userService.GetUserByEmail(ctx, input)
 
 	suite.Assert().Nil(user)
-	suite.Assert().Equal(err, apperr.NotFound)
+	suite.Assert().Equal(err, apperr.Unauthorized)
 
 	suite.mockRepo.AssertCalled(suite.T(), "GetUserByEmail", ctx, input)
 }

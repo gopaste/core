@@ -54,7 +54,7 @@ func (us *UserService) GetUserByEmail(ctx context.Context, email string) (*domai
 
 	if err != nil {
 		if err == pgx.ErrNoRows {
-			return nil, apperr.NotFound
+			return nil, apperr.Unauthorized
 		}
 
 		return nil, apperr.ServerError
