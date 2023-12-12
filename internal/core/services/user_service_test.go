@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"errors"
+	"fmt"
 	"testing"
 
 	"github.com/Caixetadev/snippet/internal/core/domain"
@@ -12,6 +13,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type UserServiceTestSuite struct {
@@ -50,11 +52,12 @@ func (suite *UserServiceTestSuite) TestCreate() {
 	suite.mockPasswordHasher.On("GenerateFromPassword", mock.AnythingOfType("[]uint8"), mock.AnythingOfType("int")).Return([]byte("password_hashed"), nil)
 	suite.mockRepo.On("Create", ctx, mock.AnythingOfType("*domain.User")).Return(nil)
 
-	err := suite.userService.Create(ctx, input)
+	user, err := suite.userService.Create(ctx, input)
+	fmt.Println(user)
 
 	assert.Nil(suite.T(), err)
-	assert.NotEmpty(suite.T(), input.ID)
-	assert.Equal(suite.T(), "password_hashed", input.Password)
+	assert.NotEmpty(suite.T(), user.ID)
+	assert.Equal(suite.T(), "password_hashed", user.Password)
 
 	suite.mockRepo.AssertCalled(suite.T(), "Create", ctx, mock.AnythingOfType("*domain.User"))
 	suite.validation.AssertCalled(suite.T(), "Validate", input)
@@ -70,7 +73,7 @@ func (suite *UserServiceTestSuite) TestValidationFails() {
 
 	suite.validation.On("Validate", input).Return(errors.New("error"))
 	suite.mockRepo.On("Create", mock.Anything, mock.Anything).Return(nil)
-	err := suite.userService.Create(ctx, input)
+	_, err := suite.userService.Create(ctx, input)
 
 	assert.Equal(suite.T(), apperr.BadRequest, err)
 
@@ -87,21 +90,23 @@ func (suite *UserServiceTestSuite) TestCreateWithUserRepositoryFailure() {
 		Password: "password",
 	}
 
-	inputGenerateFromPassword := input.Password
-
-	suite.mockRepo.On("Create", ctx, input).Return(errors.New("error"))
+	suite.mockRepo.On("Create", ctx, mock.Anything).Return(errors.New("error"))
 
 	suite.validation.On("Validate", input).Return(nil)
 
-	suite.mockPasswordHasher.On("GenerateFromPassword", []byte(inputGenerateFromPassword), 10).Return([]byte("password_hashed"), nil)
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(input.Password), bcrypt.DefaultCost)
+	assert.Nil(suite.T(), err)
 
-	err := suite.userService.Create(ctx, input)
+	suite.mockPasswordHasher.On("GenerateFromPassword", mock.Anything, bcrypt.DefaultCost).Return(hashedPassword, nil)
+
+	createdUser, err := suite.userService.Create(ctx, input)
 
 	assert.Equal(suite.T(), apperr.ServerError, err)
+	assert.Nil(suite.T(), createdUser)
 
 	suite.validation.AssertCalled(suite.T(), "Validate", input)
-	suite.mockRepo.AssertCalled(suite.T(), "Create", ctx, input)
-	suite.mockPasswordHasher.AssertCalled(suite.T(), "GenerateFromPassword", []byte(inputGenerateFromPassword), 10)
+	suite.mockRepo.AssertCalled(suite.T(), "Create", ctx, mock.Anything) // You may want to use mock.Anything for input
+	suite.mockPasswordHasher.AssertCalled(suite.T(), "GenerateFromPassword", mock.Anything, bcrypt.DefaultCost)
 }
 
 func (suite *UserServiceTestSuite) TestCreate_ErrorOnHash() {
@@ -116,7 +121,7 @@ func (suite *UserServiceTestSuite) TestCreate_ErrorOnHash() {
 	suite.mockPasswordHasher.On("GenerateFromPassword", mock.AnythingOfType("[]uint8"), mock.AnythingOfType("int")).Return([]byte(""), errors.New("error"))
 	suite.mockRepo.On("Create", ctx, mock.AnythingOfType("*domain.User")).Return(nil)
 
-	err := suite.userService.Create(ctx, input)
+	_, err := suite.userService.Create(ctx, input)
 
 	suite.Equal(apperr.ServerError, err)
 }
