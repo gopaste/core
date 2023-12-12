@@ -7,7 +7,6 @@ import (
 	apperr "github.com/Caixetadev/snippet/internal/core/error"
 	"github.com/Caixetadev/snippet/internal/token"
 	"github.com/Caixetadev/snippet/pkg/validation"
-	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -30,25 +29,24 @@ func NewUserService(
 	}
 }
 
-func (us *UserService) Create(ctx context.Context, input *domain.User) error {
+func (us *UserService) Create(ctx context.Context, input *domain.User) (*domain.User, error) {
 	if err := us.validation.Validate(input); err != nil {
-		return apperr.BadRequest
+		return nil, apperr.BadRequest
 	}
 
 	encryptedPassword, err := us.passwordHasher.GenerateFromPassword([]byte(input.Password), bcrypt.DefaultCost)
 	if err != nil {
-		return apperr.ServerError
+		return nil, apperr.ServerError
 	}
 
-	input.ID = uuid.New()
-	input.Password = string(encryptedPassword)
+	user := domain.NewUser(input.Name, input.Email, string(encryptedPassword))
 
-	err = us.userRepository.Create(ctx, input)
+	err = us.userRepository.Create(ctx, user)
 	if err != nil {
-		return apperr.ServerError
+		return nil, apperr.ServerError
 	}
 
-	return nil
+	return user, nil
 }
 
 func (us *UserService) GetUserByEmail(ctx context.Context, email string) (*domain.User, error) {
@@ -56,7 +54,7 @@ func (us *UserService) GetUserByEmail(ctx context.Context, email string) (*domai
 
 	if err != nil {
 		if err == pgx.ErrNoRows {
-			return nil, apperr.NotFound
+			return nil, apperr.Unauthorized
 		}
 
 		return nil, apperr.ServerError
