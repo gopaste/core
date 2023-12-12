@@ -17,6 +17,6 @@ func Run(cfg *config.Config, db *pgxpool.Pool, router *gin.Engine, validation va
 
 	protectedRouter := router.Group(constants.BASE_PATH)
 
-	protectedRouter.Use(middleware.AuthMiddleware(cfg.AccessTokenSecret))
+	protectedRouter.Use(middleware.AuthPostMiddleware(cfg.AccessTokenSecret))
 	routes.NewPostRouter(cfg, db, protectedRouter, validation)
 }
