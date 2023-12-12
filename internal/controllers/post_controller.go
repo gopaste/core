@@ -15,6 +15,15 @@ type PostController struct {
 	Env         *config.Config
 }
 
+// @Summary	Create a post
+// @Schemes
+// @Description	create a post on the platform
+// @Tags			Post
+// @Accept			json
+// @Produce		json
+// @Param			request	body		domain.Post	true	"Post"
+// @Success		200		{object}	domain.Response
+// @Router			/post/create [post]
 func (ps *PostController) Post(ctx *gin.Context) {
 	var payload domain.Post
 	userID := ctx.GetString("x-user-id")
@@ -33,5 +42,10 @@ func (ps *PostController) Post(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusCreated, "ok")
+	response := domain.Response{
+		Status:  http.StatusCreated,
+		Message: "Post created successfully",
+	}
+
+	ctx.JSON(http.StatusCreated, response)
 }

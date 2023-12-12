@@ -1,5 +1,23 @@
 basePath: /api/v1
 definitions:
+  domain.Post:
+    properties:
+      content:
+        type: string
+      title:
+        type: string
+    required:
+    - content
+    - title
+    type: object
+  domain.Response:
+    properties:
+      data: {}
+      message:
+        type: string
+      status:
+        type: integer
+    type: object
   domain.SigninRequest:
     properties:
       email:
@@ -94,6 +112,28 @@ paths:
       summary: Create account
       tags:
       - Auth
+  /post/create:
+    post:
+      consumes:
+      - application/json
+      description: create a post on the platform
+      parameters:
+      - description: Post
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/domain.Post'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.Response'
+      summary: Create a post
+      tags:
+      - Post
 securityDefinitions:
   BasicAuth:
     type: basic
