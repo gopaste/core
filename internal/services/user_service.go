@@ -3,8 +3,7 @@ package services
 import (
 	"context"
 
-	"github.com/Caixetadev/snippet/internal/core/domain"
-	apperr "github.com/Caixetadev/snippet/internal/core/error"
+	"github.com/Caixetadev/snippet/internal/entity"
 	"github.com/Caixetadev/snippet/internal/token"
 	"github.com/Caixetadev/snippet/pkg/validation"
 	"github.com/jackc/pgx/v5"
@@ -12,15 +11,15 @@ import (
 )
 
 type UserService struct {
-	userRepository domain.UserRepository
+	userRepository entity.UserRepository
 	validation     validation.Validator
-	passwordHasher domain.PasswordHasher
+	passwordHasher entity.PasswordHasher
 }
 
 func NewUserService(
-	userRepository domain.UserRepository,
+	userRepository entity.UserRepository,
 	validation validation.Validator,
-	passwordHasher domain.PasswordHasher,
+	passwordHasher entity.PasswordHasher,
 ) *UserService {
 	return &UserService{
 		userRepository: userRepository,
@@ -29,35 +28,35 @@ func NewUserService(
 	}
 }
 
-func (us *UserService) Create(ctx context.Context, input *domain.User) (*domain.User, error) {
+func (us *UserService) Create(ctx context.Context, input *entity.User) (*entity.User, error) {
 	if err := us.validation.Validate(input); err != nil {
-		return nil, apperr.BadRequest
+		return nil, entity.BadRequest
 	}
 
 	encryptedPassword, err := us.passwordHasher.GenerateFromPassword([]byte(input.Password), bcrypt.DefaultCost)
 	if err != nil {
-		return nil, apperr.ServerError
+		return nil, entity.ServerError
 	}
 
-	user := domain.NewUser(input.Name, input.Email, string(encryptedPassword))
+	user := entity.NewUser(input.Name, input.Email, string(encryptedPassword))
 
 	err = us.userRepository.Create(ctx, user)
 	if err != nil {
-		return nil, apperr.ServerError
+		return nil, entity.ServerError
 	}
 
 	return user, nil
 }
 
-func (us *UserService) GetUserByEmail(ctx context.Context, email string) (*domain.User, error) {
+func (us *UserService) GetUserByEmail(ctx context.Context, email string) (*entity.User, error) {
 	user, err := us.userRepository.GetUserByEmail(ctx, email)
 
 	if err != nil {
 		if err == pgx.ErrNoRows {
-			return nil, apperr.Unauthorized
+			return nil, entity.Unauthorized
 		}
 
-		return nil, apperr.ServerError
+		return nil, entity.ServerError
 	}
 
 	return user, nil
@@ -67,7 +66,7 @@ func (us *UserService) UserExistsByEmail(ctx context.Context, email string) (boo
 	return us.userRepository.UserExistsByEmail(ctx, email)
 }
 
-func (us *UserService) CreateAccessToken(user *domain.User, secret string, expiry int) (accesstoken string, err error) {
+func (us *UserService) CreateAccessToken(user *entity.User, secret string, expiry int) (accesstoken string, err error) {
 	return token.CreateAccessToken(user, secret, expiry)
 }
 

@@ -4,13 +4,12 @@ import (
 	"net/http"
 
 	"github.com/Caixetadev/snippet/config"
-	"github.com/Caixetadev/snippet/internal/core/domain"
-	"github.com/Caixetadev/snippet/internal/core/error"
+	"github.com/Caixetadev/snippet/internal/entity"
 	"github.com/gin-gonic/gin"
 )
 
 type SigninController struct {
-	UserService domain.SignupService
+	UserService entity.SignupService
 	Env         *config.Config
 }
 
@@ -20,15 +19,15 @@ type SigninController struct {
 // @Tags			Auth
 // @Accept			json
 // @Produce		json
-// @Param			request	body		domain.SigninRequest	true	"User"
-// @Success		200		{object}	domain.SigninResponse
+// @Param			request	body		entity.SigninRequest	true	"User"
+// @Success		200		{object}	entity.SigninResponse
 // @Router			/auth/signin [post]
 func (sc *SigninController) Signin(ctx *gin.Context) {
-	var payload domain.SigninRequest
+	var payload entity.SigninRequest
 
 	err := ctx.ShouldBindJSON(&payload)
 	if err != nil {
-		ctx.Error(error.BadRequest)
+		ctx.Error(entity.BadRequest)
 		return
 	}
 
@@ -40,17 +39,17 @@ func (sc *SigninController) Signin(ctx *gin.Context) {
 
 	err = sc.UserService.CompareHashAndPassword(user.Password, payload.Password)
 	if err != nil {
-		ctx.Error(error.Unauthorized)
+		ctx.Error(entity.Unauthorized)
 		return
 	}
 
 	token, err := sc.UserService.CreateAccessToken(user, sc.Env.AccessTokenSecret, sc.Env.AccessTokenExpiryHour)
 	if err != nil {
-		ctx.Error(error.BadRequest)
+		ctx.Error(entity.BadRequest)
 		return
 	}
 
-	signinResponse := domain.SigninResponse{
+	signinResponse := entity.SigninResponse{
 		AccessToken: token,
 	}
 

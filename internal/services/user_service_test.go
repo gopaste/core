@@ -5,8 +5,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/Caixetadev/snippet/internal/core/domain"
-	apperr "github.com/Caixetadev/snippet/internal/core/error"
+	"github.com/Caixetadev/snippet/internal/entity"
 	"github.com/Caixetadev/snippet/internal/mocks"
 	"github.com/jackc/pgx/v5"
 	"github.com/stretchr/testify/assert"
@@ -41,7 +40,7 @@ func TestUserServiceSuite(t *testing.T) {
 
 func (suite *UserServiceTestSuite) TestCreate() {
 	ctx := context.TODO()
-	input := &domain.User{
+	input := &entity.User{
 		Name:     "John",
 		Email:    "john@example.com",
 		Password: "password",
@@ -49,7 +48,7 @@ func (suite *UserServiceTestSuite) TestCreate() {
 
 	suite.validation.On("Validate", input).Return(nil)
 	suite.mockPasswordHasher.On("GenerateFromPassword", mock.AnythingOfType("[]uint8"), mock.AnythingOfType("int")).Return([]byte("password_hashed"), nil)
-	suite.mockRepo.On("Create", ctx, mock.AnythingOfType("*domain.User")).Return(nil)
+	suite.mockRepo.On("Create", ctx, mock.AnythingOfType("*entity.User")).Return(nil)
 
 	user, err := suite.userService.Create(ctx, input)
 
@@ -57,14 +56,14 @@ func (suite *UserServiceTestSuite) TestCreate() {
 	assert.NotEmpty(suite.T(), user.ID)
 	assert.Equal(suite.T(), "password_hashed", user.Password)
 
-	suite.mockRepo.AssertCalled(suite.T(), "Create", ctx, mock.AnythingOfType("*domain.User"))
+	suite.mockRepo.AssertCalled(suite.T(), "Create", ctx, mock.AnythingOfType("*entity.User"))
 	suite.validation.AssertCalled(suite.T(), "Validate", input)
 	suite.mockPasswordHasher.AssertCalled(suite.T(), "GenerateFromPassword", mock.AnythingOfType("[]uint8"), mock.AnythingOfType("int"))
 }
 
 func (suite *UserServiceTestSuite) TestValidationFails() {
 	ctx := context.TODO()
-	input := &domain.User{
+	input := &entity.User{
 		Name:  "John",
 		Email: "john@example.com",
 	}
@@ -73,16 +72,16 @@ func (suite *UserServiceTestSuite) TestValidationFails() {
 	suite.mockRepo.On("Create", mock.Anything, mock.Anything).Return(nil)
 	_, err := suite.userService.Create(ctx, input)
 
-	assert.Equal(suite.T(), apperr.BadRequest, err)
+	assert.Equal(suite.T(), entity.BadRequest, err)
 
-	suite.mockRepo.AssertNotCalled(suite.T(), "Create", ctx, mock.AnythingOfType("*domain.User"))
+	suite.mockRepo.AssertNotCalled(suite.T(), "Create", ctx, mock.AnythingOfType("*entity.User"))
 
 	suite.validation.AssertNumberOfCalls(suite.T(), "Validate", 1)
 }
 
 func (suite *UserServiceTestSuite) TestCreateWithUserRepositoryFailure() {
 	ctx := context.TODO()
-	input := &domain.User{
+	input := &entity.User{
 		Name:     "John",
 		Email:    "john@example.com",
 		Password: "password",
@@ -99,7 +98,7 @@ func (suite *UserServiceTestSuite) TestCreateWithUserRepositoryFailure() {
 
 	createdUser, err := suite.userService.Create(ctx, input)
 
-	assert.Equal(suite.T(), apperr.ServerError, err)
+	assert.Equal(suite.T(), entity.ServerError, err)
 	assert.Nil(suite.T(), createdUser)
 
 	suite.validation.AssertCalled(suite.T(), "Validate", input)
@@ -109,7 +108,7 @@ func (suite *UserServiceTestSuite) TestCreateWithUserRepositoryFailure() {
 
 func (suite *UserServiceTestSuite) TestCreate_ErrorOnHash() {
 	ctx := context.TODO()
-	input := &domain.User{
+	input := &entity.User{
 		Name:     "John",
 		Email:    "john@example.com",
 		Password: "password",
@@ -117,17 +116,17 @@ func (suite *UserServiceTestSuite) TestCreate_ErrorOnHash() {
 
 	suite.validation.On("Validate", mock.Anything).Return(nil)
 	suite.mockPasswordHasher.On("GenerateFromPassword", mock.AnythingOfType("[]uint8"), mock.AnythingOfType("int")).Return([]byte(""), errors.New("error"))
-	suite.mockRepo.On("Create", ctx, mock.AnythingOfType("*domain.User")).Return(nil)
+	suite.mockRepo.On("Create", ctx, mock.AnythingOfType("*entity.User")).Return(nil)
 
 	_, err := suite.userService.Create(ctx, input)
 
-	suite.Equal(apperr.ServerError, err)
+	suite.Equal(entity.ServerError, err)
 }
 
 func (suite *UserServiceTestSuite) TestGetUserByEmailExists() {
 	ctx := context.TODO()
 	input := "jhon@example.com"
-	output := &domain.User{
+	output := &entity.User{
 		Name:     "John",
 		Email:    "john@example.com",
 		Password: "password",
@@ -147,12 +146,12 @@ func (suite *UserServiceTestSuite) TestGetUserByEmailNotExists() {
 	ctx := context.TODO()
 	input := "jhon@example.com"
 
-	suite.mockRepo.On("GetUserByEmail", ctx, input).Return(&domain.User{}, pgx.ErrNoRows)
+	suite.mockRepo.On("GetUserByEmail", ctx, input).Return(&entity.User{}, pgx.ErrNoRows)
 
 	user, err := suite.userService.GetUserByEmail(ctx, input)
 
 	suite.Assert().Nil(user)
-	suite.Assert().Equal(err, apperr.Unauthorized)
+	suite.Assert().Equal(err, entity.Unauthorized)
 
 	suite.mockRepo.AssertCalled(suite.T(), "GetUserByEmail", ctx, input)
 }
@@ -161,12 +160,12 @@ func (suite *UserServiceTestSuite) TestGetUserByEmailWithRepositoryFails() {
 	ctx := context.TODO()
 	input := "jhon@example.com"
 
-	suite.mockRepo.On("GetUserByEmail", ctx, input).Return(&domain.User{}, errors.New("error"))
+	suite.mockRepo.On("GetUserByEmail", ctx, input).Return(&entity.User{}, errors.New("error"))
 
 	user, err := suite.userService.GetUserByEmail(ctx, input)
 
 	suite.Assert().Nil(user)
-	suite.Assert().Equal(err, apperr.ServerError)
+	suite.Assert().Equal(err, entity.ServerError)
 
 	suite.mockRepo.AssertCalled(suite.T(), "GetUserByEmail", ctx, input)
 }

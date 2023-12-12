@@ -3,7 +3,7 @@ package middleware
 import (
 	"net/http"
 
-	"github.com/Caixetadev/snippet/internal/core/error"
+	"github.com/Caixetadev/snippet/internal/entity"
 	"github.com/gin-gonic/gin"
 )
 
@@ -12,7 +12,7 @@ func ErrorHandler() gin.HandlerFunc {
 		c.Next()
 		for _, err := range c.Errors {
 			switch e := err.Err.(type) {
-			case error.Http:
+			case entity.Http:
 				c.AbortWithStatusJSON(e.StatusCode, e)
 			default:
 				c.AbortWithStatusJSON(http.StatusInternalServerError, map[string]string{"message": "Service Unavailable"})

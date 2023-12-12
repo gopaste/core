@@ -4,14 +4,13 @@ import (
 	"net/http"
 
 	"github.com/Caixetadev/snippet/config"
+	"github.com/Caixetadev/snippet/internal/entity"
 
-	"github.com/Caixetadev/snippet/internal/core/domain"
-	"github.com/Caixetadev/snippet/internal/core/error"
 	"github.com/gin-gonic/gin"
 )
 
 type PostController struct {
-	PostService domain.PostRepository
+	PostService entity.PostRepository
 	Env         *config.Config
 }
 
@@ -21,16 +20,16 @@ type PostController struct {
 // @Tags			Post
 // @Accept			json
 // @Produce		json
-// @Param			request	body		domain.Post	true	"Post"
-// @Success		200		{object}	domain.Response
+// @Param			request	body		entity.Post	true	"Post"
+// @Success		200		{object}	entity.Response
 // @Router			/post/create [post]
 func (ps *PostController) Post(ctx *gin.Context) {
-	var payload domain.Post
+	var payload entity.Post
 	userID := ctx.GetString("x-user-id")
 
 	err := ctx.ShouldBindJSON(&payload)
 	if err != nil {
-		ctx.Error(error.BadRequest)
+		ctx.Error(entity.BadRequest)
 		return
 	}
 
@@ -42,7 +41,7 @@ func (ps *PostController) Post(ctx *gin.Context) {
 		return
 	}
 
-	response := domain.Response{
+	response := entity.Response{
 		Status:  http.StatusCreated,
 		Message: "Post created successfully",
 	}

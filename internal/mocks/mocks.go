@@ -3,7 +3,7 @@ package mocks
 import (
 	"context"
 
-	"github.com/Caixetadev/snippet/internal/core/domain"
+	"github.com/Caixetadev/snippet/internal/entity"
 	"github.com/stretchr/testify/mock"
 )
 
@@ -11,14 +11,14 @@ type UserRepository struct {
 	mock.Mock
 }
 
-func (m *UserRepository) Create(ctx context.Context, user *domain.User) error {
+func (m *UserRepository) Create(ctx context.Context, user *entity.User) error {
 	args := m.Called(ctx, user)
 	return args.Error(0)
 }
 
-func (m *UserRepository) GetUserByEmail(ctx context.Context, email string) (*domain.User, error) {
+func (m *UserRepository) GetUserByEmail(ctx context.Context, email string) (*entity.User, error) {
 	args := m.Called(ctx, email)
-	return args.Get(0).(*domain.User), args.Error(1)
+	return args.Get(0).(*entity.User), args.Error(1)
 }
 
 func (m *UserRepository) UserExistsByEmail(ctx context.Context, email string) (bool, error) {
