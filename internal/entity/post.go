@@ -13,6 +13,17 @@ type Post struct {
 	Content string    `json:"content" validate:"required" binding:"required"`
 }
 
+func NewPost(userID *string, title string, content string) *Post {
+	uuidGenerator := UUIDGeneratorImpl{}
+
+	return &Post{
+		ID:      uuidGenerator.Generate(),
+		UserID:  userID,
+		Title:   title,
+		Content: content,
+	}
+}
+
 type PostRepository interface {
 	Create(ctx context.Context, post *Post) error
 }

@@ -1,8 +1,6 @@
 package services
 
 import (
-	"github.com/google/uuid"
-
 	"github.com/Caixetadev/snippet/internal/entity"
 	"github.com/Caixetadev/snippet/pkg/validation"
 	"golang.org/x/net/context"
@@ -24,13 +22,13 @@ func (ps *PostService) Create(ctx context.Context, input *entity.Post) error {
 		return entity.BadRequest
 	}
 
-	input.ID = uuid.New()
+	post := entity.NewPost(input.UserID, input.Title, input.Content)
 
-	if len(*input.UserID) == 0 {
-		input.UserID = nil
+	if len(*post.UserID) == 0 {
+		post.UserID = nil
 	}
 
-	err = ps.postRepo.Create(ctx, input)
+	err = ps.postRepo.Create(ctx, post)
 	if err != nil {
 		return entity.ServerError
 	}
