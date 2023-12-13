@@ -21,4 +21,5 @@ func NewPostRouter(cfg *config.Config, db *pgxpool.Pool, group *gin.RouterGroup,
 	}
 
 	group.POST("/post/create", pc.Post)
+	group.GET("/post/all", pc.GetPosts)
 }

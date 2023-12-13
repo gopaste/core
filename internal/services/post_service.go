@@ -35,3 +35,16 @@ func (ps *PostService) Create(ctx context.Context, input *entity.Post) error {
 
 	return nil
 }
+
+func (ps *PostService) GetPosts(ctx context.Context, id string) ([]*entity.Post, error) {
+	if len(id) == 0 {
+		return nil, entity.Unauthorized
+	}
+
+	posts, err := ps.postRepo.GetPosts(ctx, id)
+	if err != nil {
+		return nil, entity.ServerError
+	}
+
+	return posts, nil
+}

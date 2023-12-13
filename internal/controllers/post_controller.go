@@ -48,3 +48,15 @@ func (ps *PostController) Post(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusCreated, response)
 }
+
+func (ps *PostController) GetPosts(ctx *gin.Context) {
+	userID := ctx.GetString("x-user-id")
+
+	posts, err := ps.PostService.GetPosts(ctx, userID)
+	if err != nil {
+		ctx.Error(err)
+		return
+	}
+
+	ctx.JSON(http.StatusOK, posts)
+}
