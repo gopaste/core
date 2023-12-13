@@ -4,13 +4,12 @@ import (
 	"net/http"
 
 	"github.com/Caixetadev/snippet/config"
-	"github.com/Caixetadev/snippet/internal/core/domain"
-	"github.com/Caixetadev/snippet/internal/core/error"
+	"github.com/Caixetadev/snippet/internal/entity"
 	"github.com/gin-gonic/gin"
 )
 
 type SignupController struct {
-	UserService domain.SignupService
+	UserService entity.SignupService
 	Env         *config.Config
 }
 
@@ -20,26 +19,26 @@ type SignupController struct {
 // @Tags			Auth
 // @Accept			json
 // @Produce		json
-// @Param			request	body		domain.User	true	"User"
-// @Success		200		{object}	domain.SignupResponse
+// @Param			request	body		entity.User	true	"User"
+// @Success		200		{object}	entity.SignupResponse
 // @Router			/auth/signup [post]
 func (lc *SignupController) Signup(c *gin.Context) {
-	var payload *domain.User
+	var payload *entity.User
 
 	err := c.ShouldBindJSON(&payload)
 	if err != nil {
-		c.Error(error.BadRequest)
+		c.Error(entity.BadRequest)
 		return
 	}
 
 	exist, err := lc.UserService.UserExistsByEmail(c, payload.Email)
 	if err != nil {
-		c.Error(error.ServerError)
+		c.Error(entity.ServerError)
 		return
 	}
 
 	if exist {
-		c.Error(error.UserConflictError)
+		c.Error(entity.UserConflictError)
 		return
 	}
 
@@ -55,7 +54,7 @@ func (lc *SignupController) Signup(c *gin.Context) {
 		return
 	}
 
-	signupResponse := domain.SignupResponse{
+	signupResponse := entity.SignupResponse{
 		AccessToken: accessToken,
 	}
 

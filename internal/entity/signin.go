@@ -1,4 +1,4 @@
-package domain
+package entity
 
 type SigninRequest struct {
 	Email    string `json:"email" validate:"required,email" binding:"required"`

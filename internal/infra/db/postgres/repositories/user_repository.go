@@ -3,7 +3,7 @@ package repository
 import (
 	"context"
 
-	"github.com/Caixetadev/snippet/internal/core/domain"
+	"github.com/Caixetadev/snippet/internal/entity"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -16,7 +16,7 @@ func NewUserRepository(db *pgxpool.Pool) *userRepository {
 	return &userRepository{db: db}
 }
 
-func (ur *userRepository) Create(ctx context.Context, user *domain.User) error {
+func (ur *userRepository) Create(ctx context.Context, user *entity.User) error {
 	_, err := ur.db.Exec(
 		ctx,
 		"INSERT INTO users (id, name, email, password) VALUES ($1, $2, $3, $4)",
@@ -28,7 +28,8 @@ func (ur *userRepository) Create(ctx context.Context, user *domain.User) error {
 	return err
 }
 
-func (ur *userRepository) GetUserByEmail(ctx context.Context, email string) (*domain.User, error) {
+// GetUserByEmail make a query in database and return an user or error
+func (ur *userRepository) GetUserByEmail(ctx context.Context, email string) (*entity.User, error) {
 	line, err := ur.db.Query(ctx, "SELECT id, name, email, password FROM users WHERE email = $1", email)
 	if err != nil {
 		return nil, err
@@ -36,7 +37,7 @@ func (ur *userRepository) GetUserByEmail(ctx context.Context, email string) (*do
 
 	defer line.Close()
 
-	var user domain.User
+	var user entity.User
 
 	if line.Next() {
 		if err = line.Scan(&user.ID, &user.Name, &user.Email, &user.Password); err != nil {

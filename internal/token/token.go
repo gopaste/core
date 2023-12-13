@@ -4,14 +4,14 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Caixetadev/snippet/internal/core/domain"
+	"github.com/Caixetadev/snippet/internal/entity"
 	"github.com/dgrijalva/jwt-go/v4"
 )
 
-func CreateAccessToken(user *domain.User, secret string, expiry int) (accessToken string, err error) {
+func CreateAccessToken(user *entity.User, secret string, expiry int) (accessToken string, err error) {
 	exp := time.Now().Add(time.Hour * 1)
 
-	claims := &domain.JwtCustomClaims{
+	claims := &entity.JwtCustomClaims{
 		Name: user.Name,
 		ID:   user.ID,
 		StandardClaims: jwt.StandardClaims{

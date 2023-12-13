@@ -1,28 +1,27 @@
 package services
 
 import (
-	"github.com/Caixetadev/snippet/internal/core/domain"
 	"github.com/google/uuid"
 
-	apperr "github.com/Caixetadev/snippet/internal/core/error"
+	"github.com/Caixetadev/snippet/internal/entity"
 	"github.com/Caixetadev/snippet/pkg/validation"
 	"golang.org/x/net/context"
 )
 
 type PostService struct {
-	postRepo   domain.PostRepository
+	postRepo   entity.PostRepository
 	validation validation.Validator
 }
 
-func NewPostService(postRepo domain.PostRepository, validation validation.Validator) *PostService {
+func NewPostService(postRepo entity.PostRepository, validation validation.Validator) *PostService {
 	return &PostService{postRepo: postRepo, validation: validation}
 }
 
-func (ps *PostService) Create(ctx context.Context, input *domain.Post) error {
+func (ps *PostService) Create(ctx context.Context, input *entity.Post) error {
 	err := ps.validation.Validate(input)
 
 	if err != nil {
-		return apperr.BadRequest
+		return entity.BadRequest
 	}
 
 	input.ID = uuid.New()
@@ -33,7 +32,7 @@ func (ps *PostService) Create(ctx context.Context, input *domain.Post) error {
 
 	err = ps.postRepo.Create(ctx, input)
 	if err != nil {
-		return apperr.ServerError
+		return entity.ServerError
 	}
 
 	return nil
