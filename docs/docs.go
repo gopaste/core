@@ -44,7 +44,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/domain.SigninRequest"
+                            "$ref": "#/definitions/entity.SigninRequest"
                         }
                     }
                 ],
@@ -52,7 +52,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/domain.SigninResponse"
+                            "$ref": "#/definitions/entity.SigninResponse"
                         }
                     }
                 }
@@ -78,7 +78,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/domain.User"
+                            "$ref": "#/definitions/entity.User"
                         }
                     }
                 ],
@@ -86,7 +86,38 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/domain.SignupResponse"
+                            "$ref": "#/definitions/entity.SignupResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/post/all": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get all posts of the logged-in user on the platform",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Post"
+                ],
+                "summary": "Get all posts of the logged-in user",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/entity.Response"
+                            }
                         }
                     }
                 }
@@ -112,7 +143,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/domain.Post"
+                            "$ref": "#/definitions/entity.Post"
                         }
                     }
                 ],
@@ -120,7 +151,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/domain.Response"
+                            "$ref": "#/definitions/entity.Response"
                         }
                     }
                 }
@@ -128,7 +159,7 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "domain.Post": {
+        "entity.Post": {
             "type": "object",
             "required": [
                 "content",
@@ -143,7 +174,7 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.Response": {
+        "entity.Response": {
             "type": "object",
             "properties": {
                 "data": {},
@@ -155,7 +186,7 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.SigninRequest": {
+        "entity.SigninRequest": {
             "type": "object",
             "required": [
                 "email",
@@ -170,7 +201,7 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.SigninResponse": {
+        "entity.SigninResponse": {
             "type": "object",
             "properties": {
                 "accessToken": {
@@ -178,7 +209,7 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.SignupResponse": {
+        "entity.SignupResponse": {
             "type": "object",
             "properties": {
                 "acessToken": {
@@ -186,7 +217,7 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.User": {
+        "entity.User": {
             "type": "object",
             "required": [
                 "email",

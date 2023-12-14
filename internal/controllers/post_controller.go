@@ -49,6 +49,15 @@ func (ps *PostController) Post(ctx *gin.Context) {
 	ctx.JSON(http.StatusCreated, response)
 }
 
+// @Summary	Get all posts of the logged-in user
+// @Schemes		http
+// @Description	Get all posts of the logged-in user on the platform
+// @Tags			Post
+// @Accept			json
+// @Produce		json
+// @Security		BearerAuth
+// @Success		200		{object}	[]entity.Response
+// @Router			/post/all [get]
 func (ps *PostController) GetPosts(ctx *gin.Context) {
 	userID := ctx.GetString("x-user-id")
 
@@ -58,5 +67,11 @@ func (ps *PostController) GetPosts(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, posts)
+	response := entity.Response{
+		Status:  http.StatusOK,
+		Message: "Posts retrieved successfully",
+		Data:    posts,
+	}
+
+	ctx.JSON(http.StatusOK, response)
 }

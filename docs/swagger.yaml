@@ -1,6 +1,6 @@
 basePath: /api/v1
 definitions:
-  domain.Post:
+  entity.Post:
     properties:
       content:
         type: string
@@ -10,7 +10,7 @@ definitions:
     - content
     - title
     type: object
-  domain.Response:
+  entity.Response:
     properties:
       data: {}
       message:
@@ -18,7 +18,7 @@ definitions:
       status:
         type: integer
     type: object
-  domain.SigninRequest:
+  entity.SigninRequest:
     properties:
       email:
         type: string
@@ -28,17 +28,17 @@ definitions:
     - email
     - password
     type: object
-  domain.SigninResponse:
+  entity.SigninResponse:
     properties:
       accessToken:
         type: string
     type: object
-  domain.SignupResponse:
+  entity.SignupResponse:
     properties:
       acessToken:
         type: string
     type: object
-  domain.User:
+  entity.User:
     properties:
       email:
         type: string
@@ -79,14 +79,14 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/domain.SigninRequest'
+          $ref: '#/definitions/entity.SigninRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/domain.SigninResponse'
+            $ref: '#/definitions/entity.SigninResponse'
       summary: Authenticate user
       tags:
       - Auth
@@ -101,17 +101,36 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/domain.User'
+          $ref: '#/definitions/entity.User'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/domain.SignupResponse'
+            $ref: '#/definitions/entity.SignupResponse'
       summary: Create account
       tags:
       - Auth
+  /post/all:
+    get:
+      consumes:
+      - application/json
+      description: Get all posts of the logged-in user on the platform
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/entity.Response'
+            type: array
+      security:
+      - BearerAuth: []
+      summary: Get all posts of the logged-in user
+      tags:
+      - Post
   /post/create:
     post:
       consumes:
@@ -123,14 +142,14 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/domain.Post'
+          $ref: '#/definitions/entity.Post'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/domain.Response'
+            $ref: '#/definitions/entity.Response'
       summary: Create a post
       tags:
       - Post
