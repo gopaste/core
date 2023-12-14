@@ -8,9 +8,57 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type SigninController struct {
-	UserService entity.SignupService
+type AuthController struct {
+	UserService entity.UserService
 	Env         *config.Config
+}
+
+// @Summary	Create account
+// @Schemes
+// @Description	Create a new user account
+// @Tags			Auth
+// @Accept			json
+// @Produce		json
+// @Param			request	body		entity.User	true	"User"
+// @Success		200		{object}	entity.SignupResponse
+// @Router			/auth/signup [post]
+func (lc *AuthController) Signup(c *gin.Context) {
+	var payload *entity.User
+
+	err := c.ShouldBindJSON(&payload)
+	if err != nil {
+		c.Error(entity.BadRequest)
+		return
+	}
+
+	exist, err := lc.UserService.UserExistsByEmail(c, payload.Email)
+	if err != nil {
+		c.Error(entity.ServerError)
+		return
+	}
+
+	if exist {
+		c.Error(entity.UserConflictError)
+		return
+	}
+
+	user, err := lc.UserService.Create(c, payload)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
+	accessToken, err := lc.UserService.CreateAccessToken(user, lc.Env.AccessTokenSecret, lc.Env.AccessTokenExpiryHour)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
+	signupResponse := entity.SignupResponse{
+		AccessToken: accessToken,
+	}
+
+	c.JSON(http.StatusOK, signupResponse)
 }
 
 // @Summary	Authenticate user
@@ -22,7 +70,7 @@ type SigninController struct {
 // @Param			request	body		entity.SigninRequest	true	"User"
 // @Success		200		{object}	entity.SigninResponse
 // @Router			/auth/signin [post]
-func (sc *SigninController) Signin(ctx *gin.Context) {
+func (sc *AuthController) Signin(ctx *gin.Context) {
 	var payload entity.SigninRequest
 
 	err := ctx.ShouldBindJSON(&payload)

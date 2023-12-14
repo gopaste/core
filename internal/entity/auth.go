@@ -8,3 +8,7 @@ type SigninRequest struct {
 type SigninResponse struct {
 	AccessToken string `json:"accessToken"`
 }
+
+type SignupResponse struct {
+	AccessToken string `json:"acessToken"`
+}

@@ -30,7 +30,7 @@ type UserRepository interface {
 	UserExistsByEmail(ctx context.Context, email string) (bool, error)
 }
 
-type SignupService interface {
+type UserService interface {
 	GetUserByEmail(ctx context.Context, email string) (*User, error)
 	Create(ctx context.Context, user *User) (*User, error)
 	UserExistsByEmail(ctx context.Context, email string) (bool, error)

@@ -16,16 +16,11 @@ func NewAuthRouter(cfg *config.Config, db *pgxpool.Pool, group *gin.RouterGroup,
 
 	userService := services.NewUserService(ur, validation, &entity.BcryptPasswordHasher{})
 
-	lc := &controllers.SigninController{
+	ac := &controllers.AuthController{
 		UserService: userService,
 		Env:         cfg,
 	}
 
-	sc := &controllers.SignupController{
-		UserService: userService,
-		Env:         cfg,
-	}
-
-	group.POST("/auth/signup", sc.Signup)
-	group.POST("/auth/signin", lc.Signin)
+	group.POST("/auth/signup", ac.Signup)
+	group.POST("/auth/signin", ac.Signin)
 }
