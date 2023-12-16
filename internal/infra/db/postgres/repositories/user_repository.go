@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"time"
 
 	"github.com/Caixetadev/snippet/internal/entity"
 	"github.com/jackc/pgx/v5"
@@ -58,4 +59,34 @@ func (ur *userRepository) UserExistsByEmail(ctx context.Context, email string) (
 	}
 
 	return exists, nil
+}
+
+func (ur *userRepository) StoreVerificationData(ctx context.Context, verificationData *entity.VerificationData) error {
+	_, err := ur.db.Exec(ctx, "INSERT INTO password_reset (id, user_id, reset_token, expiration_datetime) VALUES ($1, $2, $3, $4)", verificationData.ID, verificationData.UserID, verificationData.Code, verificationData.ExpiresAt)
+	return err
+}
+
+func (ur *userRepository) VerifyCodeToResetPassword(ctx context.Context, code string) (string, bool, error) {
+	var user_id string
+
+	query := `
+		SELECT
+			user_id
+		FROM
+			password_reset
+		WHERE
+			reset_token = $1 AND expiration_datetime > $2
+	`
+
+	err := ur.db.QueryRow(ctx, query, code, time.Now()).Scan(&user_id)
+	if err != nil {
+		return "", false, err
+	}
+
+	return user_id, true, nil
+}
+
+func (ur *userRepository) UpdatePassword(ctx context.Context, password string, id string) error {
+	_, err := ur.db.Exec(ctx, "UPDATE users SET password = $1 WHERE id = $2", password, id)
+	return err
 }

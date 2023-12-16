@@ -5,12 +5,14 @@ import (
 
 	"github.com/Caixetadev/snippet/config"
 	"github.com/Caixetadev/snippet/internal/entity"
+	"github.com/Caixetadev/snippet/internal/utils"
 	"github.com/gin-gonic/gin"
 )
 
 type AuthController struct {
-	UserService entity.UserService
-	Env         *config.Config
+	UserService  entity.UserService
+	EmailService entity.EmailService
+	Env          *config.Config
 }
 
 // @Summary	Create account
@@ -102,4 +104,77 @@ func (sc *AuthController) Signin(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, signinResponse)
+}
+
+func (ac *AuthController) ForgotPassword(ctx *gin.Context) {
+	var payload entity.ForgotPasswordRequest
+
+	err := ctx.ShouldBindJSON(&payload)
+	if err != nil {
+		ctx.Error(entity.BadRequest)
+		return
+	}
+
+	user, err := ac.UserService.GetUserByEmail(ctx, payload.Email)
+	if err != nil {
+		ctx.Error(err)
+		return
+	}
+
+	code := utils.GenerateRandomString(8)
+
+	// tenho que remover isso daqui
+	mailData := entity.MailData{
+		Username: user.Name,
+		Code:     code,
+	}
+
+	err = ac.EmailService.SendResetPasswordEmail(user.Email, mailData)
+	if err != nil {
+		ctx.Error(err)
+		return
+	}
+
+	err = ac.UserService.StoreVerificationData(ctx, user.ID, user.Email, code)
+	if err != nil {
+		ctx.Error(err)
+		return
+	}
+
+	response := entity.Response{
+		Message: "Email sent successfully",
+		Status:  http.StatusOK,
+	}
+
+	ctx.JSON(http.StatusOK, response)
+}
+
+func (ac *AuthController) ResetPassword(ctx *gin.Context) {
+	var payload entity.ResetPasswordRequest
+	resetToken := ctx.Params.ByName("resetToken")
+
+	err := ctx.ShouldBindJSON(&payload)
+	if err != nil {
+		ctx.Error(entity.BadRequest)
+		return
+	}
+
+	userID, _, err := ac.UserService.VerifyCodeToResetPassword(ctx, resetToken)
+	if err != nil {
+		ctx.Error(err)
+		return
+	}
+
+	err = ac.UserService.UpdatePassword(ctx, payload.Password, payload.PasswordConfirmation, userID)
+	if err != nil {
+		ctx.Error(err)
+		return
+	}
+
+	response := entity.Response{
+		Message: "Password updated successfully",
+		Status:  http.StatusOK,
+	}
+
+	ctx.JSON(http.StatusOK, response)
 }

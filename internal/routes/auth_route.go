@@ -15,12 +15,16 @@ func NewAuthRouter(cfg *config.Config, db *pgxpool.Pool, group *gin.RouterGroup,
 	ur := repository.NewUserRepository(db)
 
 	userService := services.NewUserService(ur, validation, &entity.BcryptPasswordHasher{})
+	emailService, _ := services.NewSimpleEmailService()
 
 	ac := &controllers.AuthController{
-		UserService: userService,
-		Env:         cfg,
+		UserService:  userService,
+		EmailService: emailService,
+		Env:          cfg,
 	}
 
 	group.POST("/auth/signup", ac.Signup)
 	group.POST("/auth/signin", ac.Signin)
+	group.POST("/auth/forgot-password", ac.ForgotPassword)
+	group.POST("/auth/resetpassword/:resetToken", ac.ResetPassword)
 }
