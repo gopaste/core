@@ -5,7 +5,6 @@ import (
 
 	"github.com/Caixetadev/snippet/config"
 	"github.com/Caixetadev/snippet/internal/entity"
-	"github.com/Caixetadev/snippet/internal/utils"
 	"github.com/gin-gonic/gin"
 )
 
@@ -121,15 +120,7 @@ func (ac *AuthController) ForgotPassword(ctx *gin.Context) {
 		return
 	}
 
-	code := utils.GenerateRandomString(8)
-
-	// tenho que remover isso daqui
-	mailData := entity.MailData{
-		Username: user.Name,
-		Code:     code,
-	}
-
-	err = ac.EmailService.SendResetPasswordEmail(user.Email, mailData)
+	code, err := ac.EmailService.SendResetPasswordEmail(user)
 	if err != nil {
 		ctx.Error(err)
 		return

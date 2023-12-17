@@ -49,12 +49,13 @@ func getHTMLTemplate(emailData entity.MailData) string {
 	return templateBuffer.String()
 }
 
-func (e *SimpleEmailService) SendResetPasswordEmail(to string, emailData entity.MailData) error {
-	html := getHTMLTemplate(emailData)
+func (e *SimpleEmailService) SendResetPasswordEmail(user *entity.User) (string, error) {
+	mailData := entity.NewMailData(user.Name)
+	html := getHTMLTemplate(mailData)
 
 	input := &ses.SendEmailInput{
 		Destination: &ses.Destination{
-			ToAddresses: []*string{aws.String(to)},
+			ToAddresses: []*string{aws.String(user.Email)},
 		},
 		Message: &ses.Message{
 			Body: &ses.Body{
@@ -72,6 +73,9 @@ func (e *SimpleEmailService) SendResetPasswordEmail(to string, emailData entity.
 	}
 
 	_, err := e.sesClient.SendEmail(input)
+	if err != nil {
+		return "", entity.ServerError
+	}
 
-	return err
+	return mailData.Code, nil
 }

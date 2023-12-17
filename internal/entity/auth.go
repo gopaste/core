@@ -24,15 +24,15 @@ type VerificationData struct {
 	ExpiresAt time.Time `json:"expiresat"`
 }
 
-func NewVerificationData(userID uuid.UUID, email string, code string) VerificationData {
+func NewVerificationData(userID uuid.UUID, email string, code string) *VerificationData {
 	uuidGenerator := UUIDGeneratorImpl{}
 
-	return VerificationData{
+	return &VerificationData{
 		ID:        uuidGenerator.Generate(),
 		UserID:    userID,
 		Email:     email,
 		Code:      code,
-		ExpiresAt: time.Now().Add(time.Hour * 24),
+		ExpiresAt: time.Now().Add(time.Hour * 15),
 	}
 }
 

@@ -78,11 +78,7 @@ func (us *UserService) CompareHashAndPassword(passwordInDatabase, passwordReques
 }
 
 func (us *UserService) StoreVerificationData(ctx context.Context, userID uuid.UUID, email string, code string) error {
-	verificationData := &entity.VerificationData{
-		UserID: userID,
-		Email:  email,
-		Code:   code,
-	}
+	verificationData := entity.NewVerificationData(userID, email, code)
 
 	return us.userRepository.StoreVerificationData(ctx, verificationData)
 }
