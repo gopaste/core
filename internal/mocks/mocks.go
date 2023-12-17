@@ -26,6 +26,21 @@ func (m *UserRepository) UserExistsByEmail(ctx context.Context, email string) (b
 	return args.Bool(0), args.Error(1)
 }
 
+func (m *UserRepository) StoreVerificationData(ctx context.Context, verification *entity.VerificationData) error {
+	args := m.Called(ctx, verification)
+	return args.Error(0)
+}
+
+func (m *UserRepository) UpdatePassword(ctx context.Context, password string, id string) error {
+	args := m.Called(ctx, password, id)
+	return args.Error(0)
+}
+
+func (m *UserRepository) VerifyCodeToResetPassword(ctx context.Context, code string) (string, bool, error) {
+	args := m.Called(ctx, code)
+	return args.String(0), args.Bool(1), args.Error(2)
+}
+
 type PasswordHasher struct {
 	mock.Mock
 }
