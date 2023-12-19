@@ -3,7 +3,7 @@ package app
 import (
 	"github.com/Caixetadev/snippet/config"
 	"github.com/Caixetadev/snippet/constants"
-	"github.com/Caixetadev/snippet/internal/middleware"
+	"github.com/Caixetadev/snippet/internal/middlewares"
 	"github.com/Caixetadev/snippet/internal/routes"
 	"github.com/Caixetadev/snippet/pkg/validation"
 	"github.com/gin-gonic/gin"
@@ -17,6 +17,6 @@ func Run(cfg *config.Config, db *pgxpool.Pool, router *gin.Engine, validation va
 
 	protectedRouter := router.Group(constants.BASE_PATH)
 
-	protectedRouter.Use(middleware.AuthPostMiddleware(cfg.AccessTokenSecret))
+	protectedRouter.Use(middlewares.AuthPostMiddleware(cfg.AccessTokenSecret))
 	routes.NewPostRouter(cfg, db, protectedRouter, validation)
 }

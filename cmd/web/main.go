@@ -8,7 +8,7 @@ import (
 	_ "github.com/Caixetadev/snippet/docs"
 	"github.com/Caixetadev/snippet/internal/app"
 	"github.com/Caixetadev/snippet/internal/infra/db/postgres"
-	"github.com/Caixetadev/snippet/internal/middleware"
+	"github.com/Caixetadev/snippet/internal/middlewares"
 	"github.com/Caixetadev/snippet/pkg/validation"
 	"github.com/gin-gonic/gin"
 	validatorv10 "github.com/go-playground/validator/v10"
@@ -54,7 +54,7 @@ func main() {
 
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 
-	router.Use(middleware.ErrorHandler())
+	router.Use(middlewares.ErrorHandler())
 
 	app.Run(cfg, db, router, validation)
 
