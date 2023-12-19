@@ -26,5 +26,5 @@ func NewAuthRouter(cfg *config.Config, db *pgxpool.Pool, group *gin.RouterGroup,
 	group.POST("/auth/signup", ac.Signup)
 	group.POST("/auth/signin", ac.Signin)
 	group.POST("/auth/forgot-password", ac.ForgotPassword)
-	group.PUT("/auth/resetpassword/:resetToken", ac.ResetPassword)
+	group.PUT("/auth/reset-password/:resetToken", ac.ResetPassword)
 }

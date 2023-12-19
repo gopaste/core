@@ -1,5 +1,12 @@
 basePath: /api/v1
 definitions:
+  entity.ForgotPasswordRequest:
+    properties:
+      email:
+        type: string
+    required:
+    - email
+    type: object
   entity.Post:
     properties:
       content:
@@ -9,6 +16,16 @@ definitions:
     required:
     - content
     - title
+    type: object
+  entity.ResetPasswordRequest:
+    properties:
+      password:
+        type: string
+      passwordConfirmation:
+        type: string
+    required:
+    - password
+    - passwordConfirmation
     type: object
   entity.Response:
     properties:
@@ -68,6 +85,80 @@ info:
   title: Swagger Example API
   version: "1.0"
 paths:
+  /auth/forgot-password:
+    post:
+      consumes:
+      - application/json
+      description: Submit a request to reset the user's password by providing their
+        email address.
+      parameters:
+      - description: User's email
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/entity.ForgotPasswordRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Email sent successfully
+          schema:
+            $ref: '#/definitions/entity.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/entity.Response'
+        "404":
+          description: User not found
+          schema:
+            $ref: '#/definitions/entity.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/entity.Response'
+      summary: Submit a request to reset the user's password
+      tags:
+      - Auth
+  /auth/reset-password/{resetToken}:
+    put:
+      consumes:
+      - application/json
+      description: Reset the user's password by providing a valid reset token and
+        the new password.
+      parameters:
+      - description: User's email
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/entity.ResetPasswordRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Password updated successfully
+          schema:
+            $ref: '#/definitions/entity.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/entity.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/entity.Response'
+        "404":
+          description: Invalid reset token
+          schema:
+            $ref: '#/definitions/entity.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/entity.Response'
+      summary: Reset the user's password using a reset token
+      tags:
+      - Auth
   /auth/signin:
     post:
       consumes:
