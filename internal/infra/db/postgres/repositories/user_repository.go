@@ -90,3 +90,54 @@ func (ur *userRepository) UpdatePassword(ctx context.Context, password string, i
 	_, err := ur.db.Exec(ctx, "UPDATE users SET password = $1 WHERE id = $2", password, id)
 	return err
 }
+
+func (ur *userRepository) CreateSession(ctx context.Context, session *entity.Session) error {
+	_, err := ur.db.Exec(ctx, "INSERT INTO sessions (id, name, refresh_token, user_agent, client_ip, is_blocked, expires_at) VALUES ($1, $2, $3, $4, $5, $6, $7)", session.ID, session.Name, session.RefreshToken, session.UserAgent, session.ClientIp, session.IsBlocked, session.ExpiresAt)
+	return err
+}
+
+func (ur *userRepository) GetRefreshTokenByToken(ctx context.Context, token string) (*entity.RefreshToken, error) {
+	line, err := ur.db.Query(
+		ctx,
+		"SELECT id, token, user_id, expiration_datetime FROM refresh_tokens WHERE token = $1",
+		token,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	defer line.Close()
+
+	var refreshToken entity.RefreshToken
+	if line.Next() {
+		if err = line.Scan(&refreshToken.ID, &refreshToken.Token, &refreshToken.UserID, &refreshToken.ExpiresAt); err != nil {
+			return nil, err
+		}
+	} else {
+		return nil, pgx.ErrNoRows
+	}
+
+	return &refreshToken, nil
+}
+
+func (ur *userRepository) GetSession(ctx context.Context, id string) (*entity.Session, error) {
+	line, err := ur.db.Query(ctx, "SELECT id, name, refresh_token, is_blocked, expires_at FROM sessions WHERE id = $1 LIMIT 1", id)
+	if err != nil {
+		return nil, err
+	}
+
+	defer line.Close()
+
+	var session entity.Session
+
+	if line.Next() {
+		if err = line.Scan(&session.ID, &session.Name, &session.RefreshToken, &session.IsBlocked, &session.ExpiresAt); err != nil {
+			return nil, err
+		}
+	} else {
+		return nil, pgx.ErrNoRows
+	}
+
+	return &session, nil
+}

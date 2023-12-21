@@ -5,62 +5,61 @@ import (
 	"time"
 
 	"github.com/Caixetadev/snippet/internal/entity"
-	"github.com/dgrijalva/jwt-go/v4"
+	"github.com/o1egl/paseto"
+	"golang.org/x/crypto/chacha20poly1305"
 )
 
-func CreateAccessToken(user *entity.User, secret string, expiry int) (accessToken string, err error) {
-	exp := time.Now().Add(time.Hour * 1)
+type Maker interface {
+	// CreateToken creates a new token for a specific username and duration
+	CreateToken(user *entity.User, expiry time.Duration) (string, *entity.Payload, error)
 
-	claims := &entity.JwtCustomClaims{
-		Name: user.Name,
-		ID:   user.ID,
-		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: jwt.At(exp),
-		},
-	}
-
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-
-	t, err := token.SignedString([]byte(secret))
-	if err != nil {
-		return "", err
-	}
-
-	return t, nil
+	// VerifyToken checks if the token is valid or not
+	VerifyToken(token string) (*entity.Payload, error)
 }
 
-func IsAuthorized(requestToken string, secret string) (bool, error) {
-	_, err := jwt.Parse(requestToken, func(token *jwt.Token) (interface{}, error) {
-		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
-		}
-		return []byte(secret), nil
-	})
-
-	if err != nil {
-		return false, err
-	}
-
-	return true, nil
+type PasetoMaker struct {
+	paseto       *paseto.V2
+	symmetricKey []byte
 }
 
-func ExtractIDFromToken(requestToken string, secret string) (string, error) {
-	token, err := jwt.Parse(requestToken, func(token *jwt.Token) (interface{}, error) {
-		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
-		}
-		return []byte(secret), nil
-	})
+// NewPasetoMaker creates a new PasetoMaker
+func NewPasetoMaker(symmetricKey string) (Maker, error) {
+	if len(symmetricKey) != chacha20poly1305.KeySize {
+		return nil, fmt.Errorf("invalid key size: must be exactly %d characters", chacha20poly1305.KeySize)
+	}
 
+	maker := &PasetoMaker{
+		paseto:       paseto.NewV2(),
+		symmetricKey: []byte(symmetricKey),
+	}
+
+	return maker, nil
+}
+
+// CreateToken creates a new token for a specific username and duration
+func (maker *PasetoMaker) CreateToken(user *entity.User, duration time.Duration) (string, *entity.Payload, error) {
+	payload, err := entity.NewPayload(user.Name, user.ID, duration)
 	if err != nil {
-		return "", err
+		return "", payload, err
 	}
 
-	claims, ok := token.Claims.(jwt.MapClaims)
+	token, err := maker.paseto.Encrypt(maker.symmetricKey, payload, nil)
+	return token, payload, err
+}
 
-	if !ok && !token.Valid {
-		return "", fmt.Errorf("Invalid Token")
+// VerifyToken checks if the token is valid or not
+func (maker *PasetoMaker) VerifyToken(token string) (*entity.Payload, error) {
+	payload := &entity.Payload{}
+
+	err := maker.paseto.Decrypt(token, maker.symmetricKey, payload, nil)
+	if err != nil {
+		return nil, entity.ErrInvalidToken
 	}
 
-	return claims["id"].(string), nil
+	err = payload.Valid()
+	if err != nil {
+		return nil, err
+	}
+
+	return payload, nil
 }

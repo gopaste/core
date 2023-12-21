@@ -9,6 +9,7 @@ import (
 	"github.com/Caixetadev/snippet/internal/app"
 	"github.com/Caixetadev/snippet/internal/infra/db/postgres"
 	"github.com/Caixetadev/snippet/internal/middlewares"
+	"github.com/Caixetadev/snippet/internal/token"
 	"github.com/Caixetadev/snippet/pkg/validation"
 	"github.com/gin-gonic/gin"
 	validatorv10 "github.com/go-playground/validator/v10"
@@ -43,6 +44,11 @@ func main() {
 
 	validation := validation.NewValidator(validatorv10.New())
 
+	tokenMaker, err := token.NewPasetoMaker(cfg.AccessTokenSecret)
+	if err != nil {
+		log.Fatal(fmt.Errorf("app - Run - token.NewPasetoMaker: %w", err))
+	}
+
 	db, err := postgres.New(cfg.DBURL)
 	if err != nil {
 		log.Fatal(fmt.Errorf("app - Run - postgres.New: %w", err))
@@ -56,7 +62,7 @@ func main() {
 
 	router.Use(middlewares.ErrorHandler())
 
-	app.Run(cfg, db, router, validation)
+	app.Run(cfg, db, router, validation, tokenMaker)
 
 	router.Run(":8080")
 }

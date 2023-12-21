@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/Caixetadev/snippet/internal/entity"
 	"github.com/Caixetadev/snippet/internal/token"
@@ -17,17 +18,20 @@ type UserService struct {
 	userRepository entity.UserRepository
 	validation     validation.Validator
 	passwordHasher entity.PasswordHasher
+	tokenMaker     token.Maker
 }
 
 func NewUserService(
 	userRepository entity.UserRepository,
 	validation validation.Validator,
 	passwordHasher entity.PasswordHasher,
+	tokenMaker token.Maker,
 ) *UserService {
 	return &UserService{
 		userRepository: userRepository,
 		validation:     validation,
 		passwordHasher: passwordHasher,
+		tokenMaker:     tokenMaker,
 	}
 }
 
@@ -69,8 +73,33 @@ func (us *UserService) UserExistsByEmail(ctx context.Context, email string) (boo
 	return us.userRepository.UserExistsByEmail(ctx, email)
 }
 
-func (us *UserService) CreateAccessToken(user *entity.User, secret string, expiry int) (accesstoken string, err error) {
-	return token.CreateAccessToken(user, secret, expiry)
+func (us *UserService) CreateAccessToken(user *entity.User, expiry time.Duration) (string, *entity.Payload, error) {
+	token, payload, err := us.tokenMaker.CreateToken(user, expiry)
+	if err != nil {
+		return "", nil, err
+	}
+
+	return token, payload, nil
+}
+
+func (us *UserService) CreateRefreshToken(ctx context.Context, user *entity.User, expiry time.Duration) (string, *entity.Payload, error) {
+	token, payload, err := us.tokenMaker.CreateToken(user, expiry)
+	if err != nil {
+		return "", nil, err
+	}
+
+	return token, payload, nil
+}
+
+func (us *UserService) CreateSession(ctx context.Context, payload *entity.Payload, token string) error {
+	session := entity.NewSession(ctx, payload, token)
+
+	err := us.userRepository.CreateSession(ctx, session)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (us *UserService) CompareHashAndPassword(passwordInDatabase, passwordRequest string) error {
@@ -108,4 +137,22 @@ func (us *UserService) UpdatePassword(ctx context.Context, password, passwordCon
 	}
 
 	return us.userRepository.UpdatePassword(ctx, string(encryptedPassword), id)
+}
+
+func (us *UserService) GetSession(ctx context.Context, id string) (*entity.Session, error) {
+	user, err := us.userRepository.GetSession(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	return user, nil
+}
+
+func (us *UserService) VerifyToken(ctx context.Context, token string) (*entity.Payload, error) {
+	refreshToken, err := us.tokenMaker.VerifyToken(token)
+	if err != nil {
+		return nil, entity.NewHttpError(err.Error(), "Token verification failed", http.StatusUnauthorized)
+	}
+
+	return refreshToken, nil
 }

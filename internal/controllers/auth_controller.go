@@ -1,7 +1,9 @@
 package controllers
 
 import (
+	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/Caixetadev/snippet/config"
 	"github.com/Caixetadev/snippet/internal/entity"
@@ -43,23 +45,18 @@ func (lc *AuthController) Signup(c *gin.Context) {
 		return
 	}
 
-	user, err := lc.UserService.Create(c, payload)
+	_, err = lc.UserService.Create(c, payload)
 	if err != nil {
 		c.Error(err)
 		return
 	}
 
-	accessToken, err := lc.UserService.CreateAccessToken(user, lc.Env.AccessTokenSecret, lc.Env.AccessTokenExpiryHour)
-	if err != nil {
-		c.Error(err)
-		return
+	response := entity.Response{
+		Status:  http.StatusOK,
+		Message: "User created successfully",
 	}
 
-	signupResponse := entity.SignupResponse{
-		AccessToken: accessToken,
-	}
-
-	c.JSON(http.StatusOK, signupResponse)
+	c.JSON(http.StatusOK, response)
 }
 
 // @Summary	Authenticate user
@@ -92,14 +89,27 @@ func (sc *AuthController) Signin(ctx *gin.Context) {
 		return
 	}
 
-	token, err := sc.UserService.CreateAccessToken(user, sc.Env.AccessTokenSecret, sc.Env.AccessTokenExpiryHour)
+	accessToken, _, err := sc.UserService.CreateAccessToken(user, sc.Env.AccessTokenDuration)
 	if err != nil {
 		ctx.Error(entity.BadRequest)
 		return
 	}
 
+	refreshToken, refreshPayload, err := sc.UserService.CreateRefreshToken(ctx, user, sc.Env.RefreshTokenDuration)
+	if err != nil {
+		ctx.Error(entity.BadRequest)
+		return
+	}
+
+	err = sc.UserService.CreateSession(ctx, refreshPayload, refreshToken)
+	if err != nil {
+		ctx.Error(err)
+		return
+	}
+
 	signinResponse := entity.SigninResponse{
-		AccessToken: token,
+		AccessToken:  accessToken,
+		RefreshToken: refreshToken,
 	}
 
 	ctx.JSON(http.StatusOK, signinResponse)
@@ -188,6 +198,69 @@ func (ac *AuthController) ResetPassword(ctx *gin.Context) {
 	response := entity.Response{
 		Message: "Password updated successfully",
 		Status:  http.StatusOK,
+	}
+
+	ctx.JSON(http.StatusOK, response)
+}
+
+func (ac *AuthController) RefreshToken(ctx *gin.Context) {
+	refreshToken := ctx.Request.Header.Get("refresh")
+	if refreshToken == "" {
+		ctx.Error(entity.BadRequest)
+		return
+	}
+
+	refreshPayload, err := ac.UserService.VerifyToken(ctx, refreshToken)
+	if err != nil {
+		ctx.Error(err)
+		return
+	}
+
+	session, err := ac.UserService.GetSession(ctx, refreshPayload.ID.String())
+	if err != nil {
+		ctx.Error(err)
+		return
+	}
+
+	if session.IsBlocked {
+		err := fmt.Errorf("blocked session")
+		ctx.JSON(http.StatusUnauthorized, err)
+		return
+	}
+
+	if session.Name != refreshPayload.Username {
+		err := fmt.Errorf("incorrect session user")
+		ctx.JSON(http.StatusUnauthorized, err)
+		return
+	}
+
+	if session.RefreshToken != refreshToken {
+		err := fmt.Errorf("mismatched session token")
+		ctx.JSON(http.StatusUnauthorized, err)
+		return
+	}
+
+	if time.Now().After(session.ExpiresAt) {
+		// err := fmt.Errorf("expired session")
+		ctx.JSON(http.StatusUnauthorized, "expired session")
+		return
+	}
+
+	user := &entity.User{
+		ID:   session.ID,
+		Name: session.Name,
+	}
+
+	accessToken, _, err := ac.UserService.CreateAccessToken(user, ac.Env.AccessTokenDuration)
+	if err != nil {
+		ctx.Error(err)
+		return
+	}
+
+	response := entity.Response{
+		Status:  http.StatusOK,
+		Message: "Refreshed successfully",
+		Data:    accessToken,
 	}
 
 	ctx.JSON(http.StatusOK, response)

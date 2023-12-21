@@ -6,15 +6,16 @@ import (
 	"github.com/Caixetadev/snippet/internal/entity"
 	repository "github.com/Caixetadev/snippet/internal/infra/db/postgres/repositories"
 	"github.com/Caixetadev/snippet/internal/services"
+	"github.com/Caixetadev/snippet/internal/token"
 	"github.com/Caixetadev/snippet/pkg/validation"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-func NewAuthRouter(cfg *config.Config, db *pgxpool.Pool, group *gin.RouterGroup, validation validation.Validator) {
+func NewAuthRouter(cfg *config.Config, db *pgxpool.Pool, group *gin.RouterGroup, validation validation.Validator, tokenMaker token.Maker) {
 	ur := repository.NewUserRepository(db)
 
-	userService := services.NewUserService(ur, validation, &entity.BcryptPasswordHasher{})
+	userService := services.NewUserService(ur, validation, &entity.BcryptPasswordHasher{}, tokenMaker)
 	emailService, _ := services.NewSimpleEmailService()
 
 	ac := &controllers.AuthController{
@@ -26,5 +27,6 @@ func NewAuthRouter(cfg *config.Config, db *pgxpool.Pool, group *gin.RouterGroup,
 	group.POST("/auth/signup", ac.Signup)
 	group.POST("/auth/signin", ac.Signin)
 	group.POST("/auth/forgot-password", ac.ForgotPassword)
+	group.POST("/auth/refresh-token", ac.RefreshToken)
 	group.PUT("/auth/reset-password/:resetToken", ac.ResetPassword)
 }

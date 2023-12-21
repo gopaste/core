@@ -1,13 +1,16 @@
 package config
 
 import (
+	"time"
+
 	"github.com/spf13/viper"
 )
 
 type Config struct {
-	DBURL                 string `mapstructure:"PG_URL"`
-	AccessTokenSecret     string `mapstructure:"ACCESS_TOKEN_SECRET"`
-	AccessTokenExpiryHour int    `mapstructure:"ACCESS_TOKEN_EXPIRY_HOUR"`
+	DBURL                string        `mapstructure:"PG_URL"`
+	AccessTokenSecret    string        `mapstructure:"ACCESS_TOKEN_SECRET"`
+	AccessTokenDuration  time.Duration `mapstructure:"ACCESS_TOKEN_DURATION"`
+	RefreshTokenDuration time.Duration `mapstructure:"REFRESH_TOKEN_DURATION"`
 }
 
 func NewConfig(path string) (config *Config, err error) {

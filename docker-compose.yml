@@ -13,12 +13,12 @@ services:
     ports:
       - 5432:5432
 
-  app:
-    build: .
-    ports:
-      - "8081:8080"
-    depends_on:
-      - db
+  # app:
+  #   build: .
+  #   ports:
+  #     - "8081:8080"
+  #   depends_on:
+  #     - db
 
   air:
     image: cosmtrek/air
