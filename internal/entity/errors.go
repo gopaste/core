@@ -15,7 +15,9 @@ var (
 	)
 	UserConflictError = NewHttpError("User conflict", "A user with the same email already exists", http.StatusConflict)
 
-	Unauthorized = NewHttpError("Unauthorized", "Authentication failed or missing credentials", http.StatusUnauthorized)
+	Unauthorized      = NewHttpError("Unauthorized", "Authentication failed or missing credentials", http.StatusUnauthorized)
+	TokenInvalidError = NewHttpError("Token invalid", "The provided token is not valid", http.StatusUnauthorized)
+	TokenExpiredError = NewHttpError("Token expired", "The provided token has expired", http.StatusUnauthorized)
 )
 
 type Http struct {

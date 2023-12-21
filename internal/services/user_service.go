@@ -139,7 +139,7 @@ func (us *UserService) UpdatePassword(ctx context.Context, password, passwordCon
 	return us.userRepository.UpdatePassword(ctx, string(encryptedPassword), id)
 }
 
-func (us *UserService) GetSession(ctx context.Context, id string) (*entity.Session, error) {
+func (us *UserService) GetSession(ctx context.Context, id uuid.UUID) (*entity.Session, error) {
 	user, err := us.userRepository.GetSession(ctx, id)
 	if err != nil {
 		return nil, err
@@ -151,7 +151,7 @@ func (us *UserService) GetSession(ctx context.Context, id string) (*entity.Sessi
 func (us *UserService) VerifyToken(ctx context.Context, token string) (*entity.Payload, error) {
 	refreshToken, err := us.tokenMaker.VerifyToken(token)
 	if err != nil {
-		return nil, entity.NewHttpError(err.Error(), "Token verification failed", http.StatusUnauthorized)
+		return nil, err
 	}
 
 	return refreshToken, nil

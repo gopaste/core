@@ -4,7 +4,6 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/Caixetadev/snippet/internal/entity"
 	"github.com/Caixetadev/snippet/internal/token"
 	"github.com/gin-gonic/gin"
 )
@@ -28,7 +27,7 @@ func AuthPostMiddleware(tokenMaker token.Maker) gin.HandlerFunc {
 
 		payload, err := tokenMaker.VerifyToken(tokenString)
 		if err != nil {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, entity.Response{Message: err.Error()})
+			c.AbortWithError(http.StatusUnauthorized, err)
 			return
 		}
 
