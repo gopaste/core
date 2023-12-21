@@ -203,6 +203,17 @@ func (ac *AuthController) ResetPassword(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, response)
 }
 
+// @Summary	Refresh the user's access token
+// @Description	Refresh the user's access token by providing a valid refresh token.
+// @Tags			Auth
+// @Accept			json
+// @Produce		json
+// @Param        refresh   header      string  true  "refresh token"
+// @Success		200		{object}	entity.Response	"Refreshed successfully"
+// @Failure		400		{object}	entity.Response	"Bad Request"
+// @Failure		401		{object}	entity.Response	"Unauthorized"
+// @Failure		500		{object}	entity.Response	"Internal Server Error"
+// @Router			/auth/refresh-token [post]
 func (ac *AuthController) RefreshToken(ctx *gin.Context) {
 	refreshToken := ctx.Request.Header.Get("refresh")
 	if refreshToken == "" {

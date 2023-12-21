@@ -49,6 +49,8 @@ definitions:
     properties:
       accessToken:
         type: string
+      refreshToken:
+        type: string
     type: object
   entity.SignupResponse:
     properties:
@@ -109,6 +111,10 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/entity.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/entity.Response'
         "404":
           description: User not found
           schema:
@@ -118,6 +124,39 @@ paths:
           schema:
             $ref: '#/definitions/entity.Response'
       summary: Submit a request to reset the user's password
+      tags:
+      - Auth
+  /auth/refresh-token:
+    post:
+      consumes:
+      - application/json
+      description: Refresh the user's access token by providing a valid refresh token.
+      parameters:
+      - description: refresh token
+        in: header
+        name: refresh
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Refreshed successfully
+          schema:
+            $ref: '#/definitions/entity.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/entity.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/entity.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/entity.Response'
+      summary: Refresh the user's access token
       tags:
       - Auth
   /auth/reset-password/{resetToken}:
@@ -146,10 +185,6 @@ paths:
             $ref: '#/definitions/entity.Response'
         "401":
           description: Unauthorized
-          schema:
-            $ref: '#/definitions/entity.Response'
-        "404":
-          description: Invalid reset token
           schema:
             $ref: '#/definitions/entity.Response'
         "500":
