@@ -258,7 +258,7 @@ func (ac *AuthController) RefreshToken(ctx *gin.Context) {
 	}
 
 	user := &entity.User{
-		ID:   session.ID,
+		ID:   refreshPayload.UserID,
 		Name: session.Name,
 	}
 
