@@ -48,6 +48,6 @@ type UserService interface {
 	VerifyCodeToResetPassword(ctx context.Context, code string) (string, bool, error)
 	UpdatePassword(ctx context.Context, password string, passwordConfirmation string, id string) error
 	VerifyToken(ctx context.Context, token string) (*Payload, error)
-	GetSession(ctx context.Context, id string) (*Session, error)
+	GetSession(ctx context.Context, id uuid.UUID) (*Session, error)
 	CreateSession(ctx context.Context, payload *Payload, token string) error
 }

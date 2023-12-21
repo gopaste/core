@@ -227,7 +227,7 @@ func (ac *AuthController) RefreshToken(ctx *gin.Context) {
 		return
 	}
 
-	session, err := ac.UserService.GetSession(ctx, refreshPayload.ID.String())
+	session, err := ac.UserService.GetSession(ctx, refreshPayload.ID)
 	if err != nil {
 		ctx.Error(err)
 		return
