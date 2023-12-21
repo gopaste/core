@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/Caixetadev/snippet/internal/entity"
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -121,7 +122,7 @@ func (ur *userRepository) GetRefreshTokenByToken(ctx context.Context, token stri
 	return &refreshToken, nil
 }
 
-func (ur *userRepository) GetSession(ctx context.Context, id string) (*entity.Session, error) {
+func (ur *userRepository) GetSession(ctx context.Context, id uuid.UUID) (*entity.Session, error) {
 	line, err := ur.db.Query(ctx, "SELECT id, name, refresh_token, is_blocked, expires_at FROM sessions WHERE id = $1 LIMIT 1", id)
 	if err != nil {
 		return nil, err

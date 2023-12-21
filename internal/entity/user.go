@@ -32,7 +32,7 @@ type UserRepository interface {
 	StoreVerificationData(ctx context.Context, verificationData *VerificationData) error
 	UpdatePassword(ctx context.Context, password string, id string) error
 	VerifyCodeToResetPassword(ctx context.Context, code string) (string, bool, error)
-	GetSession(ctx context.Context, id string) (*Session, error)
+	GetSession(ctx context.Context, id uuid.UUID) (*Session, error)
 	CreateSession(ctx context.Context, session *Session) error
 	GetRefreshTokenByToken(ctx context.Context, token string) (*RefreshToken, error)
 }
