@@ -40,26 +40,3 @@ func (m *UserRepository) VerifyCodeToResetPassword(ctx context.Context, code str
 	args := m.Called(ctx, code)
 	return args.String(0), args.Bool(1), args.Error(2)
 }
-
-type PasswordHasher struct {
-	mock.Mock
-}
-
-func (m *PasswordHasher) GenerateFromPassword(password []byte, cost int) ([]byte, error) {
-	args := m.Called(password, cost)
-	return args.Get(0).([]byte), args.Error(1)
-}
-
-func (m *PasswordHasher) CompareHashAndPassword(hashedPassword, password []byte) error {
-	args := m.Called(hashedPassword, password)
-	return args.Error(1)
-}
-
-type Validator struct {
-	mock.Mock
-}
-
-func (v *Validator) Validate(obj interface{}) error {
-	arg := v.Called(obj)
-	return arg.Error(0)
-}
