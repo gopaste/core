@@ -6,9 +6,9 @@ import (
 	"log"
 	"testing"
 
-	"github.com/Caixetadev/snippet/internal/entity"
 	"github.com/Caixetadev/snippet/internal/infra/db/postgres"
 	"github.com/Caixetadev/snippet/internal/services"
+	"github.com/Caixetadev/snippet/pkg/passwordhash"
 	"github.com/Caixetadev/snippet/pkg/validation"
 
 	validatorv10 "github.com/go-playground/validator/v10"
@@ -23,7 +23,7 @@ func BenchmarkUserExistsByEmail(b *testing.B) {
 	validation := validation.NewValidator(validatorv10.New())
 	repo := NewUserRepository(db)
 
-	passwordHasher := &entity.BcryptPasswordHasher{}
+	passwordHasher := &passwordhash.BcryptPasswordHasher{}
 	o := services.NewUserService(repo, validation, passwordHasher)
 
 	for i := 0; i < b.N; i++ {

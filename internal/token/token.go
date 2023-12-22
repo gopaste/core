@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/Caixetadev/snippet/internal/entity"
+	"github.com/Caixetadev/snippet/pkg/typesystem"
 	"github.com/o1egl/paseto"
 	"golang.org/x/crypto/chacha20poly1305"
 )
@@ -53,7 +54,7 @@ func (maker *PasetoMaker) VerifyToken(token string) (*entity.Payload, error) {
 
 	err := maker.paseto.Decrypt(token, maker.symmetricKey, payload, nil)
 	if err != nil {
-		return nil, entity.TokenInvalidError
+		return nil, typesystem.TokenInvalidError
 	}
 
 	err = payload.Valid()

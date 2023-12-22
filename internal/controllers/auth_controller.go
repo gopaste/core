@@ -6,6 +6,7 @@ import (
 
 	"github.com/Caixetadev/snippet/config"
 	"github.com/Caixetadev/snippet/internal/entity"
+	"github.com/Caixetadev/snippet/pkg/typesystem"
 	"github.com/gin-gonic/gin"
 )
 
@@ -29,18 +30,18 @@ func (lc *AuthController) Signup(c *gin.Context) {
 
 	err := c.ShouldBindJSON(&payload)
 	if err != nil {
-		c.Error(entity.BadRequest)
+		c.Error(typesystem.BadRequest)
 		return
 	}
 
 	exist, err := lc.UserService.UserExistsByEmail(c, payload.Email)
 	if err != nil {
-		c.Error(entity.ServerError)
+		c.Error(typesystem.ServerError)
 		return
 	}
 
 	if exist {
-		c.Error(entity.UserConflictError)
+		c.Error(typesystem.UserConflictError)
 		return
 	}
 
@@ -72,7 +73,7 @@ func (sc *AuthController) Signin(ctx *gin.Context) {
 
 	err := ctx.ShouldBindJSON(&payload)
 	if err != nil {
-		ctx.Error(entity.BadRequest)
+		ctx.Error(typesystem.BadRequest)
 		return
 	}
 
@@ -84,19 +85,19 @@ func (sc *AuthController) Signin(ctx *gin.Context) {
 
 	err = sc.UserService.CompareHashAndPassword(user.Password, payload.Password)
 	if err != nil {
-		ctx.Error(entity.Unauthorized)
+		ctx.Error(typesystem.Unauthorized)
 		return
 	}
 
 	accessToken, _, err := sc.UserService.CreateAccessToken(user, sc.Env.AccessTokenDuration)
 	if err != nil {
-		ctx.Error(entity.BadRequest)
+		ctx.Error(typesystem.BadRequest)
 		return
 	}
 
 	refreshToken, refreshPayload, err := sc.UserService.CreateRefreshToken(ctx, user, sc.Env.RefreshTokenDuration)
 	if err != nil {
-		ctx.Error(entity.BadRequest)
+		ctx.Error(typesystem.BadRequest)
 		return
 	}
 
@@ -131,7 +132,7 @@ func (ac *AuthController) ForgotPassword(ctx *gin.Context) {
 
 	err := ctx.ShouldBindJSON(&payload)
 	if err != nil {
-		ctx.Error(entity.BadRequest)
+		ctx.Error(typesystem.BadRequest)
 		return
 	}
 
@@ -178,7 +179,7 @@ func (ac *AuthController) ResetPassword(ctx *gin.Context) {
 
 	err := ctx.ShouldBindJSON(&payload)
 	if err != nil {
-		ctx.Error(entity.BadRequest)
+		ctx.Error(typesystem.BadRequest)
 		return
 	}
 
@@ -216,7 +217,7 @@ func (ac *AuthController) ResetPassword(ctx *gin.Context) {
 func (ac *AuthController) RefreshToken(ctx *gin.Context) {
 	refreshToken := ctx.Request.Header.Get("refresh")
 	if refreshToken == "" {
-		ctx.Error(entity.BadRequest)
+		ctx.Error(typesystem.BadRequest)
 		return
 	}
 
@@ -233,22 +234,22 @@ func (ac *AuthController) RefreshToken(ctx *gin.Context) {
 	}
 
 	if session.IsBlocked {
-		ctx.Error(entity.Unauthorized)
+		ctx.Error(typesystem.Unauthorized)
 		return
 	}
 
 	if session.Name != refreshPayload.Username {
-		ctx.Error(entity.Unauthorized)
+		ctx.Error(typesystem.Unauthorized)
 		return
 	}
 
 	if session.RefreshToken != refreshToken {
-		ctx.Error(entity.Unauthorized)
+		ctx.Error(typesystem.Unauthorized)
 		return
 	}
 
 	if time.Now().After(session.ExpiresAt) {
-		ctx.Error(entity.TokenExpiredError)
+		ctx.Error(typesystem.TokenExpiredError)
 		return
 	}
 

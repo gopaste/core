@@ -2,6 +2,7 @@ package services
 
 import (
 	"github.com/Caixetadev/snippet/internal/entity"
+	"github.com/Caixetadev/snippet/pkg/typesystem"
 	"github.com/Caixetadev/snippet/pkg/validation"
 	"golang.org/x/net/context"
 )
@@ -19,7 +20,7 @@ func (ps *PostService) Create(ctx context.Context, input *entity.Post) error {
 	err := ps.validation.Validate(input)
 
 	if err != nil {
-		return entity.BadRequest
+		return typesystem.BadRequest
 	}
 
 	post := entity.NewPost(input.UserID, input.Title, input.Content)
@@ -30,7 +31,7 @@ func (ps *PostService) Create(ctx context.Context, input *entity.Post) error {
 
 	err = ps.postRepo.Create(ctx, post)
 	if err != nil {
-		return entity.ServerError
+		return typesystem.ServerError
 	}
 
 	return nil
@@ -38,12 +39,12 @@ func (ps *PostService) Create(ctx context.Context, input *entity.Post) error {
 
 func (ps *PostService) GetPosts(ctx context.Context, id string) ([]*entity.Post, error) {
 	if len(id) == 0 {
-		return nil, entity.Unauthorized
+		return nil, typesystem.Unauthorized
 	}
 
 	posts, err := ps.postRepo.GetPosts(ctx, id)
 	if err != nil {
-		return nil, entity.ServerError
+		return nil, typesystem.ServerError
 	}
 
 	return posts, nil

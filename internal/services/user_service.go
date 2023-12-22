@@ -3,11 +3,12 @@ package services
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"time"
 
 	"github.com/Caixetadev/snippet/internal/entity"
 	"github.com/Caixetadev/snippet/internal/token"
+	"github.com/Caixetadev/snippet/pkg/passwordhash"
+	"github.com/Caixetadev/snippet/pkg/typesystem"
 	"github.com/Caixetadev/snippet/pkg/validation"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
@@ -17,14 +18,14 @@ import (
 type UserService struct {
 	userRepository entity.UserRepository
 	validation     validation.Validator
-	passwordHasher entity.PasswordHasher
+	passwordHasher passwordhash.PasswordHasher
 	tokenMaker     token.Maker
 }
 
 func NewUserService(
 	userRepository entity.UserRepository,
 	validation validation.Validator,
-	passwordHasher entity.PasswordHasher,
+	passwordHasher passwordhash.PasswordHasher,
 	tokenMaker token.Maker,
 ) *UserService {
 	return &UserService{
@@ -37,19 +38,19 @@ func NewUserService(
 
 func (us *UserService) Create(ctx context.Context, input *entity.User) (*entity.User, error) {
 	if err := us.validation.Validate(input); err != nil {
-		return nil, entity.BadRequest
+		return nil, typesystem.BadRequest
 	}
 
 	encryptedPassword, err := us.passwordHasher.GenerateFromPassword([]byte(input.Password), bcrypt.DefaultCost)
 	if err != nil {
-		return nil, entity.ServerError
+		return nil, typesystem.ServerError
 	}
 
 	user := entity.NewUser(input.Name, input.Email, string(encryptedPassword))
 
 	err = us.userRepository.Create(ctx, user)
 	if err != nil {
-		return nil, entity.ServerError
+		return nil, typesystem.ServerError
 	}
 
 	return user, nil
@@ -60,10 +61,10 @@ func (us *UserService) GetUserByEmail(ctx context.Context, email string) (*entit
 
 	if err != nil {
 		if err == pgx.ErrNoRows {
-			return nil, entity.Unauthorized
+			return nil, typesystem.Unauthorized
 		}
 
-		return nil, entity.ServerError
+		return nil, typesystem.ServerError
 	}
 
 	return user, nil
@@ -115,12 +116,12 @@ func (us *UserService) StoreVerificationData(ctx context.Context, userID uuid.UU
 func (us *UserService) VerifyCodeToResetPassword(ctx context.Context, code string) (string, bool, error) {
 	userID, valid, err := us.userRepository.VerifyCodeToResetPassword(ctx, code)
 	if !valid {
-		return "", false, entity.NewHttpError("Invalid or expired token", "The token provided for password recovery is invalid or has expired.", http.StatusUnauthorized)
+		return "", false, typesystem.TokenExpiredError
 	}
 
 	if err != nil {
 		fmt.Println(err)
-		return "", false, entity.ServerError
+		return "", false, typesystem.ServerError
 	}
 
 	return userID, true, nil
@@ -128,12 +129,12 @@ func (us *UserService) VerifyCodeToResetPassword(ctx context.Context, code strin
 
 func (us *UserService) UpdatePassword(ctx context.Context, password, passwordConfirmation, id string) error {
 	if password != passwordConfirmation {
-		return entity.BadRequest
+		return typesystem.BadRequest
 	}
 
 	encryptedPassword, err := us.passwordHasher.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
-		return entity.ServerError
+		return typesystem.ServerError
 	}
 
 	return us.userRepository.UpdatePassword(ctx, string(encryptedPassword), id)

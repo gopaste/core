@@ -5,6 +5,7 @@ import (
 
 	"github.com/Caixetadev/snippet/config"
 	"github.com/Caixetadev/snippet/internal/entity"
+	"github.com/Caixetadev/snippet/pkg/typesystem"
 
 	"github.com/gin-gonic/gin"
 )
@@ -29,7 +30,7 @@ func (ps *PostController) Post(ctx *gin.Context) {
 
 	err := ctx.ShouldBindJSON(&payload)
 	if err != nil {
-		ctx.Error(entity.BadRequest)
+		ctx.Error(typesystem.BadRequest)
 		return
 	}
 

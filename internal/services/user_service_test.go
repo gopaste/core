@@ -7,6 +7,7 @@ import (
 
 	"github.com/Caixetadev/snippet/internal/entity"
 	"github.com/Caixetadev/snippet/internal/mocks"
+	"github.com/Caixetadev/snippet/pkg/typesystem"
 	"github.com/jackc/pgx/v5"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -72,7 +73,7 @@ func (suite *UserServiceTestSuite) TestValidationFails() {
 	suite.mockRepo.On("Create", mock.Anything, mock.Anything).Return(nil)
 	_, err := suite.userService.Create(ctx, input)
 
-	assert.Equal(suite.T(), entity.BadRequest, err)
+	assert.Equal(suite.T(), typesystem.BadRequest, err)
 
 	suite.mockRepo.AssertNotCalled(suite.T(), "Create", ctx, mock.AnythingOfType("*entity.User"))
 
@@ -98,7 +99,7 @@ func (suite *UserServiceTestSuite) TestCreateWithUserRepositoryFailure() {
 
 	createdUser, err := suite.userService.Create(ctx, input)
 
-	assert.Equal(suite.T(), entity.ServerError, err)
+	assert.Equal(suite.T(), typesystem.ServerError, err)
 	assert.Nil(suite.T(), createdUser)
 
 	suite.validation.AssertCalled(suite.T(), "Validate", input)
@@ -120,7 +121,7 @@ func (suite *UserServiceTestSuite) TestCreate_ErrorOnHash() {
 
 	_, err := suite.userService.Create(ctx, input)
 
-	suite.Equal(entity.ServerError, err)
+	suite.Equal(typesystem.ServerError, err)
 }
 
 func (suite *UserServiceTestSuite) TestGetUserByEmailExists() {
@@ -151,7 +152,7 @@ func (suite *UserServiceTestSuite) TestGetUserByEmailNotExists() {
 	user, err := suite.userService.GetUserByEmail(ctx, input)
 
 	suite.Assert().Nil(user)
-	suite.Assert().Equal(err, entity.Unauthorized)
+	suite.Assert().Equal(err, typesystem.Unauthorized)
 
 	suite.mockRepo.AssertCalled(suite.T(), "GetUserByEmail", ctx, input)
 }
@@ -165,7 +166,7 @@ func (suite *UserServiceTestSuite) TestGetUserByEmailWithRepositoryFails() {
 	user, err := suite.userService.GetUserByEmail(ctx, input)
 
 	suite.Assert().Nil(user)
-	suite.Assert().Equal(err, entity.ServerError)
+	suite.Assert().Equal(err, typesystem.ServerError)
 
 	suite.mockRepo.AssertCalled(suite.T(), "GetUserByEmail", ctx, input)
 }

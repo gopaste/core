@@ -1,4 +1,4 @@
-package entity
+package passwordhash
 
 import "golang.org/x/crypto/bcrypt"
 

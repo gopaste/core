@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/Caixetadev/snippet/internal/entity"
+	"github.com/Caixetadev/snippet/pkg/typesystem"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -74,7 +75,7 @@ func (e *SimpleEmailService) SendResetPasswordEmail(user *entity.User) (string, 
 
 	_, err := e.sesClient.SendEmail(input)
 	if err != nil {
-		return "", entity.ServerError
+		return "", typesystem.ServerError
 	}
 
 	return mailData.Code, nil

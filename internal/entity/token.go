@@ -3,6 +3,7 @@ package entity
 import (
 	"time"
 
+	"github.com/Caixetadev/snippet/pkg/typesystem"
 	"github.com/golang-jwt/jwt"
 	"github.com/google/uuid"
 )
@@ -35,7 +36,7 @@ func NewPayload(username string, userID uuid.UUID, duration time.Duration) (*Pay
 
 func (payload *Payload) Valid() error {
 	if time.Now().After(payload.ExpiredAt) {
-		return TokenExpiredError
+		return typesystem.TokenExpiredError
 	}
 	return nil
 }

@@ -2,8 +2,7 @@ package app
 
 import (
 	"github.com/Caixetadev/snippet/config"
-	"github.com/Caixetadev/snippet/constants"
-	"github.com/Caixetadev/snippet/internal/middlewares"
+	"github.com/Caixetadev/snippet/internal/middleware"
 	"github.com/Caixetadev/snippet/internal/routes"
 	"github.com/Caixetadev/snippet/internal/token"
 	"github.com/Caixetadev/snippet/pkg/validation"
@@ -11,13 +10,15 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
+const BASE_PATH = "/api/v1"
+
 func Run(cfg *config.Config, db *pgxpool.Pool, router *gin.Engine, validation validation.Validator, tokenMaker token.Maker) {
-	publicRouter := router.Group(constants.BASE_PATH)
+	publicRouter := router.Group(BASE_PATH)
 
 	routes.NewAuthRouter(cfg, db, publicRouter, validation, tokenMaker)
 
-	protectedRouter := router.Group(constants.BASE_PATH)
+	protectedRouter := router.Group(BASE_PATH)
 
-	protectedRouter.Use(middlewares.AuthPostMiddleware(tokenMaker))
+	protectedRouter.Use(middleware.AuthPostMiddleware(tokenMaker))
 	routes.NewPostRouter(cfg, db, protectedRouter, validation)
 }
