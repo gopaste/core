@@ -1,11 +1,6 @@
 package services
 
 import (
-	"bytes"
-	"html/template"
-	"log"
-	"os"
-
 	"github.com/Caixetadev/snippet/internal/entity"
 	"github.com/Caixetadev/snippet/pkg/typesystem"
 	"github.com/aws/aws-sdk-go/aws"
@@ -33,26 +28,9 @@ func NewSimpleEmailService() (*SimpleEmailService, error) {
 	}, nil
 }
 
-func getHTMLTemplate(emailData entity.MailData) string {
-	var templateBuffer bytes.Buffer
-
-	htmlData, err := os.ReadFile("./web/template/password_recovery.html")
-
-	htmlTemplate := template.Must(template.New("password_recovery.html").Parse(string(htmlData)))
-
-	err = htmlTemplate.ExecuteTemplate(&templateBuffer, "password_recovery.html", emailData)
-
-	if err != nil {
-		log.Fatal(err)
-		return ""
-	}
-
-	return templateBuffer.String()
-}
-
 func (e *SimpleEmailService) SendResetPasswordEmail(user *entity.User) (string, error) {
 	mailData := entity.NewMailData(user.Name)
-	html := getHTMLTemplate(mailData)
+	html := entity.GetHTMLTemplate(mailData)
 
 	input := &ses.SendEmailInput{
 		Destination: &ses.Destination{
