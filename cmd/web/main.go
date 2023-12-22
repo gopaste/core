@@ -44,7 +44,7 @@ func main() {
 
 	validation := validation.NewValidator(validatorv10.New())
 
-	tokenMaker, err := token.NewPasetoMaker(cfg.AccessTokenSecret)
+	tokenMaker, err := token.NewPasetoMaker(cfg.TokenSymmetricKey)
 	if err != nil {
 		log.Fatal(fmt.Errorf("app - Run - token.NewPasetoMaker: %w", err))
 	}

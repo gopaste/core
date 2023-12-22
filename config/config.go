@@ -8,7 +8,7 @@ import (
 
 type Config struct {
 	DBURL                string        `mapstructure:"PG_URL"`
-	AccessTokenSecret    string        `mapstructure:"ACCESS_TOKEN_SECRET"`
+	TokenSymmetricKey    string        `mapstructure:"TOKEN_SYMMETRIC_KEY"`
 	AccessTokenDuration  time.Duration `mapstructure:"ACCESS_TOKEN_DURATION"`
 	RefreshTokenDuration time.Duration `mapstructure:"REFRESH_TOKEN_DURATION"`
 }
