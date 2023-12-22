@@ -36,11 +36,11 @@ func NewSimpleEmailService() (*SimpleEmailService, error) {
 func getHTMLTemplate(emailData entity.MailData) string {
 	var templateBuffer bytes.Buffer
 
-	htmlData, err := os.ReadFile("index.html")
+	htmlData, err := os.ReadFile("./web/template/password_recovery.html")
 
-	htmlTemplate := template.Must(template.New("email.html").Parse(string(htmlData)))
+	htmlTemplate := template.Must(template.New("password_recovery.html").Parse(string(htmlData)))
 
-	err = htmlTemplate.ExecuteTemplate(&templateBuffer, "email.html", emailData)
+	err = htmlTemplate.ExecuteTemplate(&templateBuffer, "password_recovery.html", emailData)
 
 	if err != nil {
 		log.Fatal(err)
