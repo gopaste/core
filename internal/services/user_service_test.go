@@ -21,17 +21,20 @@ type UserServiceTestSuite struct {
 	mockPasswordHasher *mocks.PasswordHasher
 	userService        *UserService
 	validation         *mocks.Validator
+	tokenMaker         *mocks.Maker
 }
 
 func (suite *UserServiceTestSuite) SetupTest() {
 	suite.mockRepo = new(mocks.UserRepository)
 	suite.mockPasswordHasher = new(mocks.PasswordHasher)
 	suite.validation = new(mocks.Validator)
+	suite.tokenMaker = new(mocks.Maker)
 
 	suite.userService = NewUserService(
 		suite.mockRepo,
 		suite.validation,
 		suite.mockPasswordHasher,
+		suite.tokenMaker,
 	)
 }
 
