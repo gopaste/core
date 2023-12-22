@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"fmt"
 	"net/http"
 	"time"
 
@@ -234,26 +233,22 @@ func (ac *AuthController) RefreshToken(ctx *gin.Context) {
 	}
 
 	if session.IsBlocked {
-		err := fmt.Errorf("blocked session")
-		ctx.JSON(http.StatusUnauthorized, err)
+		ctx.Error(entity.Unauthorized)
 		return
 	}
 
 	if session.Name != refreshPayload.Username {
-		err := fmt.Errorf("incorrect session user")
-		ctx.JSON(http.StatusUnauthorized, err)
+		ctx.Error(entity.Unauthorized)
 		return
 	}
 
 	if session.RefreshToken != refreshToken {
-		err := fmt.Errorf("mismatched session token")
-		ctx.JSON(http.StatusUnauthorized, err)
+		ctx.Error(entity.Unauthorized)
 		return
 	}
 
 	if time.Now().After(session.ExpiresAt) {
-		// err := fmt.Errorf("expired session")
-		ctx.JSON(http.StatusUnauthorized, "expired session")
+		ctx.Error(entity.TokenExpiredError)
 		return
 	}
 
