@@ -20,16 +20,19 @@ var (
 	TokenExpiredError = NewHttpError("Token expired", "The provided token has expired", http.StatusUnauthorized)
 )
 
+// Http defines the error struct for an HTTP error
 type Http struct {
 	Description string `json:"description,omitempty"`
 	Metadata    string `json:"metadata,omitempty"`
 	StatusCode  int    `json:"statusCode"`
 }
 
+// Error returns the error message
 func (e Http) Error() string {
 	return fmt.Sprintf("description: %s,  metadata: %s", e.Description, e.Metadata)
 }
 
+// NewHttpError returns a new Http error
 func NewHttpError(description, metadata string, statusCode int) Http {
 	return Http{
 		Description: description,
