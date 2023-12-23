@@ -16,7 +16,10 @@ func NewAuthRouter(cfg *config.Config, db *pgxpool.Pool, group *gin.RouterGroup,
 	ur := repository.NewUserRepository(db)
 
 	userService := services.NewUserService(ur, validation, &passwordhash.BcryptPasswordHasher{}, tokenMaker)
-	emailService, _ := services.NewSimpleEmailService()
+	emailService, err := services.NewSimpleEmailService(cfg)
+	if err != nil {
+		panic(err)
+	}
 
 	ac := &controllers.AuthController{
 		UserService:  userService,
