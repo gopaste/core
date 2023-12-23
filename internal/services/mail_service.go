@@ -1,6 +1,9 @@
 package services
 
 import (
+	"fmt"
+
+	"github.com/Caixetadev/snippet/config"
 	"github.com/Caixetadev/snippet/internal/entity"
 	"github.com/Caixetadev/snippet/pkg/typesystem"
 	"github.com/aws/aws-sdk-go/aws"
@@ -11,12 +14,13 @@ import (
 
 type SimpleEmailService struct {
 	sesClient *ses.SES
+	Env       *config.Config
 }
 
-func NewSimpleEmailService() (*SimpleEmailService, error) {
+func NewSimpleEmailService(cfg *config.Config) (*SimpleEmailService, error) {
 	sess, err := session.NewSession(&aws.Config{
-		Region:      aws.String("us-east-1"),
-		Credentials: credentials.NewStaticCredentials("AKIA2KTHNMQ7JQVJIQWA", "6uQhJjqYL0OcrBQ5Sr22ddVBhSC1+4QAIEXcNUKL", ""),
+		Region:      aws.String(cfg.AWSRegion),
+		Credentials: credentials.NewStaticCredentials(cfg.AWSSecretKey, cfg.AWSAccessKey, ""),
 	})
 
 	if err != nil {
@@ -25,36 +29,45 @@ func NewSimpleEmailService() (*SimpleEmailService, error) {
 
 	return &SimpleEmailService{
 		sesClient: ses.New(sess),
+		Env:       cfg,
 	}, nil
 }
 
 func (e *SimpleEmailService) SendResetPasswordEmail(user *entity.User) (string, error) {
 	mailData := entity.NewMailData(user.Name)
-	html := entity.GetHTMLTemplate(mailData)
 
-	input := &ses.SendEmailInput{
-		Destination: &ses.Destination{
-			ToAddresses: []*string{aws.String(user.Email)},
-		},
-		Message: &ses.Message{
-			Body: &ses.Body{
-				Html: &ses.Content{
-					Charset: aws.String("UTF-8"),
-					Data:    aws.String(html),
-				},
-			},
-			Subject: &ses.Content{
-				Charset: aws.String("UTF-8"),
-				Data:    aws.String("Reset Password"),
-			},
-		},
-		Source: aws.String("caixetadev@gmail.com"),
-	}
+	htmlBody := entity.GetHTMLTemplate(mailData)
+
+	input := BuildEmail(user.Email, htmlBody, "Reset Password", e.Env.AWSSenderEmail)
 
 	_, err := e.sesClient.SendEmail(input)
 	if err != nil {
+		fmt.Println(err)
 		return "", typesystem.ServerError
 	}
 
 	return mailData.Code, nil
+}
+
+const charset = "UTF-8"
+
+func BuildEmail(toEmail, htmlBody, subject, sourceEmail string) *ses.SendEmailInput {
+	return &ses.SendEmailInput{
+		Destination: &ses.Destination{
+			ToAddresses: []*string{aws.String(toEmail)},
+		},
+		Message: &ses.Message{
+			Body: &ses.Body{
+				Html: &ses.Content{
+					Charset: aws.String(charset),
+					Data:    aws.String(htmlBody),
+				},
+			},
+			Subject: &ses.Content{
+				Charset: aws.String(charset),
+				Data:    aws.String(subject),
+			},
+		},
+		Source: aws.String(sourceEmail),
+	}
 }
