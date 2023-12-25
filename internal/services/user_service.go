@@ -2,7 +2,6 @@ package services
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/Caixetadev/snippet/internal/entity"
@@ -116,13 +115,12 @@ func (us *UserService) StoreVerificationData(ctx context.Context, userID uuid.UU
 func (us *UserService) VerifyCodeToResetPassword(ctx context.Context, code string) (string, error) {
 	verificationData, err := us.userRepository.VerifyCodeToResetPassword(ctx, code)
 
-	if time.Now().After(verificationData.ExpiresAt) {
-		return "", typesystem.TokenExpiredError
+	if err != nil {
+		return "", typesystem.ServerError
 	}
 
-	if err != nil {
-		fmt.Println(err)
-		return "", typesystem.ServerError
+	if time.Now().After(verificationData.ExpiresAt) {
+		return "", typesystem.TokenExpiredError
 	}
 
 	return verificationData.UserID.String(), nil
