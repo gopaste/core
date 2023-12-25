@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"testing"
+	"time"
 
 	"github.com/Caixetadev/snippet/internal/entity"
 	"github.com/Caixetadev/snippet/internal/mocks"
@@ -263,4 +264,53 @@ func (suite *UserServiceTestSuite) TestUpdatePassword_RepoError() {
 	suite.Assert().Equal(typesystem.ServerError, err)
 	suite.mockRepo.AssertCalled(suite.T(), "UpdatePassword", ctx, passwordHashed, id.String())
 	suite.mockPasswordHasher.AssertCalled(suite.T(), "GenerateFromPassword", mock.AnythingOfType("[]uint8"), mock.AnythingOfType("int"))
+}
+
+func (suite *UserServiceTestSuite) TestVerifyCodeToResetPassword() {
+	ctx := context.TODO()
+
+	output := entity.VerificationData{
+		Code:      "code",
+		ExpiresAt: time.Now().Add(time.Minute * 5),
+		Email:     "email",
+		UserID:    uuid.New(),
+	}
+
+	suite.mockRepo.On("VerifyCodeToResetPassword", ctx, "code").Return(output, nil)
+
+	userID, err := suite.userService.VerifyCodeToResetPassword(ctx, "code")
+
+	suite.Nil(err)
+	suite.Equal(output.UserID.String(), userID)
+}
+
+func (suite *UserServiceTestSuite) TestVerifyCodeToResetPassword_CodeExpired() {
+	ctx := context.TODO()
+
+	output := entity.VerificationData{
+		Code:      "code",
+		ExpiresAt: time.Now().Add(-1),
+		Email:     "email",
+		UserID:    uuid.New(),
+	}
+
+	suite.mockRepo.On("VerifyCodeToResetPassword", ctx, "code").Return(output, nil)
+
+	userID, err := suite.userService.VerifyCodeToResetPassword(ctx, "code")
+
+	suite.Equal("", userID)
+	suite.NotNil(err)
+	suite.Equal(err, typesystem.TokenExpiredError)
+}
+
+func (suite *UserServiceTestSuite) TestVerifyCodeToResetPassword_Error() {
+	ctx := context.TODO()
+
+	suite.mockRepo.On("VerifyCodeToResetPassword", ctx, "code").Return(entity.VerificationData{}, errors.New("error"))
+
+	userID, err := suite.userService.VerifyCodeToResetPassword(ctx, "code")
+
+	suite.Equal("", userID)
+	suite.NotNil(err)
+	suite.Equal(err, typesystem.ServerError)
 }
