@@ -31,7 +31,7 @@ type UserRepository interface {
 	UserExistsByEmail(ctx context.Context, email string) (bool, error)
 	StoreVerificationData(ctx context.Context, verificationData *VerificationData) error
 	UpdatePassword(ctx context.Context, password string, id string) error
-	VerifyCodeToResetPassword(ctx context.Context, code string) (string, bool, error)
+	VerifyCodeToResetPassword(ctx context.Context, code string) (VerificationData, error)
 	GetSession(ctx context.Context, id uuid.UUID) (*Session, error)
 	CreateSession(ctx context.Context, session *Session) error
 	GetRefreshTokenByToken(ctx context.Context, token string) (*RefreshToken, error)
@@ -45,7 +45,7 @@ type UserService interface {
 	CreateRefreshToken(ctx context.Context, user *User, expiry time.Duration) (string, *Payload, error)
 	CompareHashAndPassword(passwordInDatabase, passwordRequest string) error
 	StoreVerificationData(ctx context.Context, userID uuid.UUID, email string, code string) error
-	VerifyCodeToResetPassword(ctx context.Context, code string) (string, bool, error)
+	VerifyCodeToResetPassword(ctx context.Context, code string) (string, error)
 	UpdatePassword(ctx context.Context, password string, passwordConfirmation string, id string) error
 	VerifyToken(ctx context.Context, token string) (*Payload, error)
 	GetSession(ctx context.Context, id uuid.UUID) (*Session, error)

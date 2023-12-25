@@ -183,7 +183,7 @@ func (ac *AuthController) ResetPassword(ctx *gin.Context) {
 		return
 	}
 
-	userID, _, err := ac.UserService.VerifyCodeToResetPassword(ctx, resetToken)
+	userID, err := ac.UserService.VerifyCodeToResetPassword(ctx, resetToken)
 	if err != nil {
 		ctx.Error(err)
 		return

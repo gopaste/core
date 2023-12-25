@@ -2,7 +2,6 @@ package repository
 
 import (
 	"context"
-	"time"
 
 	"github.com/Caixetadev/snippet/internal/entity"
 	"github.com/google/uuid"
@@ -67,24 +66,24 @@ func (ur *userRepository) StoreVerificationData(ctx context.Context, verificatio
 	return err
 }
 
-func (ur *userRepository) VerifyCodeToResetPassword(ctx context.Context, code string) (string, bool, error) {
-	var user_id string
-
-	query := `
-		SELECT
-			user_id
-		FROM
-			password_reset
-		WHERE
-			reset_token = $1 AND expiration_datetime > $2
-	`
-
-	err := ur.db.QueryRow(ctx, query, code, time.Now()).Scan(&user_id)
+func (ur *userRepository) VerifyCodeToResetPassword(ctx context.Context, code string) (entity.VerificationData, error) {
+	line, err := ur.db.Query(ctx, "SELECT id, user_id, expiration_datetime FROM password_reset WHERE reset_token = $1", code)
 	if err != nil {
-		return "", false, err
+		return entity.VerificationData{}, err
 	}
 
-	return user_id, true, nil
+	defer line.Close()
+
+	var verificationData entity.VerificationData
+	if line.Next() {
+		if err = line.Scan(verificationData.ID, verificationData.UserID, verificationData.ExpiresAt); err != nil {
+			return entity.VerificationData{}, err
+		}
+	} else {
+		return entity.VerificationData{}, pgx.ErrNoRows
+	}
+
+	return verificationData, nil
 }
 
 func (ur *userRepository) UpdatePassword(ctx context.Context, password string, id string) error {

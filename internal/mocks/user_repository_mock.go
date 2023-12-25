@@ -37,9 +37,9 @@ func (m *UserRepository) UpdatePassword(ctx context.Context, password string, id
 	return args.Error(0)
 }
 
-func (m *UserRepository) VerifyCodeToResetPassword(ctx context.Context, code string) (string, bool, error) {
+func (m *UserRepository) VerifyCodeToResetPassword(ctx context.Context, code string) (entity.VerificationData, error) {
 	args := m.Called(ctx, code)
-	return args.String(0), args.Bool(1), args.Error(2)
+	return args.Get(0).(entity.VerificationData), args.Error(1)
 }
 
 func (m *UserRepository) CreateSession(ctx context.Context, session *entity.Session) error {
