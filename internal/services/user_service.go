@@ -137,7 +137,12 @@ func (us *UserService) UpdatePassword(ctx context.Context, password, passwordCon
 		return typesystem.ServerError
 	}
 
-	return us.userRepository.UpdatePassword(ctx, string(encryptedPassword), id)
+	err = us.userRepository.UpdatePassword(ctx, string(encryptedPassword), id)
+	if err != nil {
+		return typesystem.ServerError
+	}
+
+	return nil
 }
 
 func (us *UserService) GetSession(ctx context.Context, id uuid.UUID) (*entity.Session, error) {
