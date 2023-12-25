@@ -8,11 +8,11 @@ import (
 	"github.com/Caixetadev/snippet/internal/entity"
 	"github.com/Caixetadev/snippet/internal/mocks"
 	"github.com/Caixetadev/snippet/pkg/typesystem"
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
-	"golang.org/x/crypto/bcrypt"
 )
 
 type UserServiceTestSuite struct {
@@ -95,10 +95,7 @@ func (suite *UserServiceTestSuite) TestCreateWithUserRepositoryFailure() {
 
 	suite.validation.On("Validate", input).Return(nil)
 
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(input.Password), bcrypt.DefaultCost)
-	assert.Nil(suite.T(), err)
-
-	suite.mockPasswordHasher.On("GenerateFromPassword", mock.Anything, bcrypt.DefaultCost).Return(hashedPassword, nil)
+	suite.mockPasswordHasher.On("GenerateFromPassword", mock.AnythingOfType("[]uint8"), mock.AnythingOfType("int")).Return([]byte("password_hashed"), nil)
 
 	createdUser, err := suite.userService.Create(ctx, input)
 
@@ -106,8 +103,8 @@ func (suite *UserServiceTestSuite) TestCreateWithUserRepositoryFailure() {
 	assert.Nil(suite.T(), createdUser)
 
 	suite.validation.AssertCalled(suite.T(), "Validate", input)
-	suite.mockRepo.AssertCalled(suite.T(), "Create", ctx, mock.Anything) // You may want to use mock.Anything for input
-	suite.mockPasswordHasher.AssertCalled(suite.T(), "GenerateFromPassword", mock.Anything, bcrypt.DefaultCost)
+	suite.mockRepo.AssertCalled(suite.T(), "Create", ctx, mock.Anything)
+	suite.mockPasswordHasher.AssertCalled(suite.T(), "GenerateFromPassword", mock.Anything, mock.AnythingOfType("int"))
 }
 
 func (suite *UserServiceTestSuite) TestCreate_ErrorOnHash() {
@@ -202,4 +199,68 @@ func (suite *UserServiceTestSuite) TestUserExistsByEmail_Error() {
 	suite.NotNil(err)
 
 	suite.mockRepo.AssertCalled(suite.T(), "UserExistsByEmail", ctx, input)
+}
+
+func (suite *UserServiceTestSuite) TestUpdatePassword() {
+	ctx := context.TODO()
+
+	id := uuid.New()
+	password := "password"
+	passwordConfirm := "password"
+
+	passwordHashed := "password_hashed"
+
+	suite.mockPasswordHasher.On("GenerateFromPassword", mock.AnythingOfType("[]uint8"), mock.AnythingOfType("int")).Return([]byte(passwordHashed), nil)
+	suite.mockRepo.On("UpdatePassword", ctx, passwordHashed, id.String()).Return(nil)
+
+	err := suite.userService.UpdatePassword(ctx, password, passwordConfirm, id.String())
+
+	suite.Nil(err)
+	suite.mockRepo.AssertCalled(suite.T(), "UpdatePassword", ctx, passwordHashed, id.String())
+	suite.mockPasswordHasher.AssertCalled(suite.T(), "GenerateFromPassword", mock.AnythingOfType("[]uint8"), mock.AnythingOfType("int"))
+}
+
+func (suite *UserServiceTestSuite) TestUpdatePassword_PasswordNotMatch() {
+	ctx := context.TODO()
+
+	id := uuid.New()
+	password := "password"
+	passwordConfirm := "not_password"
+
+	err := suite.userService.UpdatePassword(ctx, password, passwordConfirm, id.String())
+
+	suite.Assert().Equal(err, typesystem.BadRequest)
+}
+
+func (suite *UserServiceTestSuite) TestUpdatePassword_HashError() {
+	ctx := context.TODO()
+
+	id := uuid.New()
+	password := "password"
+	passwordConfirm := "password"
+
+	suite.mockPasswordHasher.On("GenerateFromPassword", mock.AnythingOfType("[]uint8"), mock.AnythingOfType("int")).Return([]byte(""), errors.New("error"))
+
+	err := suite.userService.UpdatePassword(ctx, password, passwordConfirm, id.String())
+
+	suite.Equal(typesystem.ServerError, err)
+}
+
+func (suite *UserServiceTestSuite) TestUpdatePassword_RepoError() {
+	ctx := context.TODO()
+
+	id := uuid.New()
+	password := "password"
+	passwordConfirm := "password"
+
+	passwordHashed := "password_hashed"
+
+	suite.mockPasswordHasher.On("GenerateFromPassword", mock.AnythingOfType("[]uint8"), mock.AnythingOfType("int")).Return([]byte(passwordHashed), nil)
+	suite.mockRepo.On("UpdatePassword", ctx, passwordHashed, id.String()).Return(errors.New("error"))
+
+	err := suite.userService.UpdatePassword(ctx, password, passwordConfirm, id.String())
+
+	suite.Assert().Equal(typesystem.ServerError, err)
+	suite.mockRepo.AssertCalled(suite.T(), "UpdatePassword", ctx, passwordHashed, id.String())
+	suite.mockPasswordHasher.AssertCalled(suite.T(), "GenerateFromPassword", mock.AnythingOfType("[]uint8"), mock.AnythingOfType("int"))
 }
