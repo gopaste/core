@@ -75,7 +75,7 @@ func NewVerificationData(userID uuid.UUID, email string, code string) *Verificat
 		UserID:    userID,
 		Email:     email,
 		Code:      code,
-		ExpiresAt: time.Now().Add(time.Hour * 15),
+		ExpiresAt: time.Now().Add(time.Minute * 5),
 	}
 }
 
