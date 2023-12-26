@@ -65,7 +65,7 @@ func (ps *PostController) GetPosts(ctx *gin.Context) {
 
 	id, err := uuid.Parse(userID)
 	if err != nil {
-		ctx.Error(typesystem.ServerError)
+		ctx.Error(typesystem.Unauthorized)
 		return
 	}
 

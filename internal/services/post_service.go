@@ -41,10 +41,6 @@ func (ps *PostService) Create(ctx context.Context, input *entity.Post) error {
 }
 
 func (ps *PostService) GetPosts(ctx context.Context, id uuid.UUID) ([]*entity.Post, error) {
-	if len(id) == 0 {
-		return nil, typesystem.Unauthorized
-	}
-
 	posts, err := ps.postRepo.GetPosts(ctx, id)
 	if err != nil {
 		return nil, typesystem.ServerError

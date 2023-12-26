@@ -9,6 +9,7 @@ import (
 	"github.com/Caixetadev/snippet/internal/services"
 	"github.com/Caixetadev/snippet/internal/tests/mocks"
 	"github.com/Caixetadev/snippet/pkg/typesystem"
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 )
@@ -113,4 +114,43 @@ func (suite *PostServiceTestSuite) TestCreate_PostRepositoryError() {
 
 	suite.mocksRepo.AssertExpectations(suite.T())
 	suite.validation.AssertExpectations(suite.T())
+}
+
+func (suite *PostServiceTestSuite) TestGetPosts() {
+	ctx := context.TODO()
+
+	userID := uuid.New()
+	userIDStr := userID.String()
+
+	output := []*entity.Post{
+		{
+			ID:      uuid.New(),
+			UserID:  &userIDStr,
+			Title:   "Title",
+			Content: "Body",
+		},
+	}
+
+	suite.mocksRepo.On("GetPosts", ctx, mock.Anything).Return(output, nil).Once()
+
+	posts, err := suite.postService.GetPosts(ctx, userID)
+
+	suite.NoError(err)
+	suite.Equal(output, posts)
+
+	suite.mocksRepo.AssertExpectations(suite.T())
+}
+
+func (suite *PostServiceTestSuite) TestGetPosts_PostRepositoryError() {
+	ctx := context.TODO()
+
+	userID := uuid.New()
+
+	suite.mocksRepo.On("GetPosts", ctx, mock.Anything).Return([]*entity.Post{}, errors.New("error")).Once()
+	posts, err := suite.postService.GetPosts(ctx, userID)
+
+	suite.Equal(typesystem.ServerError, err)
+	suite.Nil(posts)
+
+	suite.mocksRepo.AssertExpectations(suite.T())
 }
