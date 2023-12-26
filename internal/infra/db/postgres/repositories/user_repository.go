@@ -86,7 +86,7 @@ func (ur *userRepository) VerifyCodeToResetPassword(ctx context.Context, code st
 	return verificationData, nil
 }
 
-func (ur *userRepository) UpdatePassword(ctx context.Context, password string, id string) error {
+func (ur *userRepository) UpdatePassword(ctx context.Context, password string, id uuid.UUID) error {
 	_, err := ur.db.Exec(ctx, "UPDATE users SET password = $1 WHERE id = $2", password, id)
 	return err
 }

@@ -112,21 +112,21 @@ func (us *UserService) StoreVerificationData(ctx context.Context, userID uuid.UU
 	return us.userRepository.StoreVerificationData(ctx, verificationData)
 }
 
-func (us *UserService) VerifyCodeToResetPassword(ctx context.Context, code string) (string, error) {
+func (us *UserService) VerifyCodeToResetPassword(ctx context.Context, code string) (uuid.UUID, error) {
 	verificationData, err := us.userRepository.VerifyCodeToResetPassword(ctx, code)
 
 	if err != nil {
-		return "", typesystem.ServerError
+		return uuid.Nil, typesystem.ServerError
 	}
 
 	if time.Now().After(verificationData.ExpiresAt) {
-		return "", typesystem.TokenExpiredError
+		return uuid.Nil, typesystem.TokenExpiredError
 	}
 
-	return verificationData.UserID.String(), nil
+	return verificationData.UserID, nil
 }
 
-func (us *UserService) UpdatePassword(ctx context.Context, password, passwordConfirmation, id string) error {
+func (us *UserService) UpdatePassword(ctx context.Context, password string, passwordConfirmation string, id uuid.UUID) error {
 	if password != passwordConfirmation {
 		return typesystem.BadRequest
 	}

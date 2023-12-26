@@ -212,12 +212,12 @@ func (suite *UserServiceTestSuite) TestUpdatePassword() {
 	passwordHashed := "password_hashed"
 
 	suite.mockPasswordHasher.On("GenerateFromPassword", mock.AnythingOfType("[]uint8"), mock.AnythingOfType("int")).Return([]byte(passwordHashed), nil)
-	suite.mockRepo.On("UpdatePassword", ctx, passwordHashed, id.String()).Return(nil)
+	suite.mockRepo.On("UpdatePassword", ctx, passwordHashed, id).Return(nil)
 
-	err := suite.userService.UpdatePassword(ctx, password, passwordConfirm, id.String())
+	err := suite.userService.UpdatePassword(ctx, password, passwordConfirm, id)
 
 	suite.Nil(err)
-	suite.mockRepo.AssertCalled(suite.T(), "UpdatePassword", ctx, passwordHashed, id.String())
+	suite.mockRepo.AssertCalled(suite.T(), "UpdatePassword", ctx, passwordHashed, id)
 	suite.mockPasswordHasher.AssertCalled(suite.T(), "GenerateFromPassword", mock.AnythingOfType("[]uint8"), mock.AnythingOfType("int"))
 }
 
@@ -228,7 +228,7 @@ func (suite *UserServiceTestSuite) TestUpdatePassword_PasswordNotMatch() {
 	password := "password"
 	passwordConfirm := "not_password"
 
-	err := suite.userService.UpdatePassword(ctx, password, passwordConfirm, id.String())
+	err := suite.userService.UpdatePassword(ctx, password, passwordConfirm, id)
 
 	suite.Assert().Equal(err, typesystem.BadRequest)
 }
@@ -242,7 +242,7 @@ func (suite *UserServiceTestSuite) TestUpdatePassword_HashError() {
 
 	suite.mockPasswordHasher.On("GenerateFromPassword", mock.AnythingOfType("[]uint8"), mock.AnythingOfType("int")).Return([]byte(""), errors.New("error"))
 
-	err := suite.userService.UpdatePassword(ctx, password, passwordConfirm, id.String())
+	err := suite.userService.UpdatePassword(ctx, password, passwordConfirm, id)
 
 	suite.Equal(typesystem.ServerError, err)
 }
@@ -257,12 +257,12 @@ func (suite *UserServiceTestSuite) TestUpdatePassword_RepoError() {
 	passwordHashed := "password_hashed"
 
 	suite.mockPasswordHasher.On("GenerateFromPassword", mock.AnythingOfType("[]uint8"), mock.AnythingOfType("int")).Return([]byte(passwordHashed), nil)
-	suite.mockRepo.On("UpdatePassword", ctx, passwordHashed, id.String()).Return(errors.New("error"))
+	suite.mockRepo.On("UpdatePassword", ctx, passwordHashed, id).Return(errors.New("error"))
 
-	err := suite.userService.UpdatePassword(ctx, password, passwordConfirm, id.String())
+	err := suite.userService.UpdatePassword(ctx, password, passwordConfirm, id)
 
 	suite.Assert().Equal(typesystem.ServerError, err)
-	suite.mockRepo.AssertCalled(suite.T(), "UpdatePassword", ctx, passwordHashed, id.String())
+	suite.mockRepo.AssertCalled(suite.T(), "UpdatePassword", ctx, passwordHashed, id)
 	suite.mockPasswordHasher.AssertCalled(suite.T(), "GenerateFromPassword", mock.AnythingOfType("[]uint8"), mock.AnythingOfType("int"))
 }
 
@@ -281,7 +281,7 @@ func (suite *UserServiceTestSuite) TestVerifyCodeToResetPassword() {
 	userID, err := suite.userService.VerifyCodeToResetPassword(ctx, "code")
 
 	suite.Nil(err)
-	suite.Equal(output.UserID.String(), userID)
+	suite.Equal(output.UserID, userID)
 }
 
 func (suite *UserServiceTestSuite) TestVerifyCodeToResetPassword_CodeExpired() {
@@ -298,7 +298,7 @@ func (suite *UserServiceTestSuite) TestVerifyCodeToResetPassword_CodeExpired() {
 
 	userID, err := suite.userService.VerifyCodeToResetPassword(ctx, "code")
 
-	suite.Equal("", userID)
+	suite.Equal(uuid.Nil, userID)
 	suite.NotNil(err)
 	suite.Equal(err, typesystem.TokenExpiredError)
 }
@@ -310,7 +310,7 @@ func (suite *UserServiceTestSuite) TestVerifyCodeToResetPassword_Error() {
 
 	userID, err := suite.userService.VerifyCodeToResetPassword(ctx, "code")
 
-	suite.Equal("", userID)
+	suite.Equal(uuid.Nil, userID)
 	suite.NotNil(err)
 	suite.Equal(err, typesystem.ServerError)
 }

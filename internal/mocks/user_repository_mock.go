@@ -32,7 +32,7 @@ func (m *UserRepository) StoreVerificationData(ctx context.Context, verification
 	return args.Error(0)
 }
 
-func (m *UserRepository) UpdatePassword(ctx context.Context, password string, id string) error {
+func (m *UserRepository) UpdatePassword(ctx context.Context, password string, id uuid.UUID) error {
 	args := m.Called(ctx, password, id)
 	return args.Error(0)
 }
