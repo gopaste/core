@@ -2,6 +2,7 @@ package unit
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"testing"
 
@@ -151,6 +152,109 @@ func (suite *PostServiceTestSuite) TestGetPosts_PostRepositoryError() {
 
 	suite.Equal(typesystem.ServerError, err)
 	suite.Nil(posts)
+
+	suite.mocksRepo.AssertExpectations(suite.T())
+}
+
+func (suite *PostServiceTestSuite) TestDeletePost() {
+	ctx := context.TODO()
+
+	userID := uuid.New()
+	userIDStr := userID.String()
+	postID := uuid.New()
+
+	output := &entity.Post{
+		ID:      postID,
+		UserID:  &userIDStr,
+		Title:   "Title",
+		Content: "Body",
+	}
+
+	suite.mocksRepo.On("GetPostByID", ctx, postID).Return(output, nil).Once()
+	suite.mocksRepo.On("Delete", ctx, postID).Return(nil).Once()
+
+	err := suite.postService.DeletePost(ctx, postID, userID)
+
+	suite.NoError(err)
+
+	suite.mocksRepo.AssertExpectations(suite.T())
+}
+
+func (suite *PostServiceTestSuite) TestDeletePost_UserNonAuth() {
+	ctx := context.TODO()
+
+	userIDNon := uuid.New()
+
+	userID := uuid.New()
+	userIDStr := userID.String()
+	postID := uuid.New()
+
+	output := &entity.Post{
+		ID:      postID,
+		UserID:  &userIDStr,
+		Title:   "Title",
+		Content: "Body",
+	}
+
+	suite.mocksRepo.On("GetPostByID", ctx, postID).Return(output, nil).Once()
+
+	err := suite.postService.DeletePost(ctx, postID, userIDNon)
+
+	suite.Equal(typesystem.Unauthorized, err)
+
+	suite.mocksRepo.AssertExpectations(suite.T())
+}
+
+func (suite *PostServiceTestSuite) TestDeletePost_PostNotFound() {
+	ctx := context.TODO()
+
+	userID := uuid.New()
+	postID := uuid.New()
+
+	suite.mocksRepo.On("GetPostByID", ctx, postID).Return(&entity.Post{}, sql.ErrNoRows).Once()
+
+	err := suite.postService.DeletePost(ctx, postID, userID)
+
+	suite.Equal(typesystem.NotFound, err)
+
+	suite.mocksRepo.AssertExpectations(suite.T())
+}
+
+func (suite *PostServiceTestSuite) TestDeletePost_GetPostsRepositoryError() {
+	ctx := context.TODO()
+
+	userID := uuid.New()
+	postID := uuid.New()
+
+	suite.mocksRepo.On("GetPostByID", ctx, postID).Return(&entity.Post{}, errors.New("error")).Once()
+
+	err := suite.postService.DeletePost(ctx, postID, userID)
+
+	suite.Equal(typesystem.ServerError, err)
+
+	suite.mocksRepo.AssertExpectations(suite.T())
+}
+
+func (suite *PostServiceTestSuite) TestDeletePost_DeleteRepositoryError() {
+	ctx := context.TODO()
+
+	userID := uuid.New()
+	userIDStr := userID.String()
+	postID := uuid.New()
+
+	output := &entity.Post{
+		ID:      postID,
+		UserID:  &userIDStr,
+		Title:   "Title",
+		Content: "Body",
+	}
+
+	suite.mocksRepo.On("GetPostByID", ctx, postID).Return(output, nil).Once()
+	suite.mocksRepo.On("Delete", ctx, postID).Return(errors.New("error")).Once()
+
+	err := suite.postService.DeletePost(ctx, postID, userID)
+
+	suite.Equal(typesystem.ServerError, err)
 
 	suite.mocksRepo.AssertExpectations(suite.T())
 }

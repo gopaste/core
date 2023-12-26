@@ -1,7 +1,8 @@
 package services
 
 import (
-	"fmt"
+	"database/sql"
+	"errors"
 
 	"github.com/Caixetadev/snippet/internal/entity"
 	"github.com/Caixetadev/snippet/pkg/typesystem"
@@ -52,7 +53,9 @@ func (ps *PostService) GetPosts(ctx context.Context, id uuid.UUID) ([]*entity.Po
 func (ps *PostService) DeletePost(ctx context.Context, id uuid.UUID, userID uuid.UUID) error {
 	post, err := ps.postRepo.GetPostByID(ctx, id)
 	if err != nil {
-		fmt.Println(err)
+		if errors.Is(err, sql.ErrNoRows) {
+			return typesystem.NotFound
+		}
 		return typesystem.ServerError
 	}
 
@@ -62,7 +65,6 @@ func (ps *PostService) DeletePost(ctx context.Context, id uuid.UUID, userID uuid
 
 	err = ps.postRepo.Delete(ctx, id)
 	if err != nil {
-		fmt.Println(err)
 		return typesystem.ServerError
 	}
 
