@@ -103,7 +103,12 @@ func (us *UserService) CreateSession(ctx context.Context, payload *entity.Payloa
 }
 
 func (us *UserService) CompareHashAndPassword(passwordInDatabase, passwordRequest string) error {
-	return us.passwordHasher.CompareHashAndPassword([]byte(passwordInDatabase), []byte(passwordRequest))
+	err := us.passwordHasher.CompareHashAndPassword([]byte(passwordInDatabase), []byte(passwordRequest))
+	if err != nil {
+		return typesystem.ServerError
+	}
+
+	return nil
 }
 
 func (us *UserService) StoreVerificationData(ctx context.Context, userID uuid.UUID, email string, code string) error {

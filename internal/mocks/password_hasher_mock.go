@@ -13,5 +13,5 @@ func (m *PasswordHasher) GenerateFromPassword(password []byte, cost int) ([]byte
 
 func (m *PasswordHasher) CompareHashAndPassword(hashedPassword, password []byte) error {
 	args := m.Called(hashedPassword, password)
-	return args.Error(1)
+	return args.Error(0)
 }

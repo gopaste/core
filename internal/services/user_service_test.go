@@ -366,3 +366,19 @@ func (suite *UserServiceTestSuite) TestGetSession_Error() {
 	suite.Equal(err, typesystem.ServerError)
 	suite.Nil(session)
 }
+
+func (suite *UserServiceTestSuite) TestCompareHashAndPassowrd() {
+	suite.mockPasswordHasher.On("CompareHashAndPassword", []byte("hash"), []byte("hash")).Return(nil)
+
+	err := suite.userService.CompareHashAndPassword("hash", "hash")
+
+	suite.Nil(err)
+}
+
+func (suite *UserServiceTestSuite) TestCompareHashAndPassowrd_Error() {
+	suite.mockPasswordHasher.On("CompareHashAndPassword", []byte("hash"), []byte("hash")).Return(errors.New("error"))
+
+	err := suite.userService.CompareHashAndPassword("hash", "hash")
+
+	suite.Equal(err, typesystem.ServerError)
+}
