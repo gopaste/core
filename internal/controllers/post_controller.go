@@ -6,12 +6,13 @@ import (
 	"github.com/Caixetadev/snippet/config"
 	"github.com/Caixetadev/snippet/internal/entity"
 	"github.com/Caixetadev/snippet/pkg/typesystem"
+	"github.com/google/uuid"
 
 	"github.com/gin-gonic/gin"
 )
 
 type PostController struct {
-	PostService entity.PostRepository
+	PostService entity.PostService
 	Env         *config.Config
 }
 
@@ -62,7 +63,13 @@ func (ps *PostController) Post(ctx *gin.Context) {
 func (ps *PostController) GetPosts(ctx *gin.Context) {
 	userID := ctx.GetString("x-user-id")
 
-	posts, err := ps.PostService.GetPosts(ctx, userID)
+	id, err := uuid.Parse(userID)
+	if err != nil {
+		ctx.Error(typesystem.ServerError)
+		return
+	}
+
+	posts, err := ps.PostService.GetPosts(ctx, id)
 	if err != nil {
 		ctx.Error(err)
 		return
@@ -75,4 +82,32 @@ func (ps *PostController) GetPosts(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, response)
+}
+
+func (ps *PostController) DeletePost(ctx *gin.Context) {
+	userID := ctx.GetString("x-user-id")
+	postID := ctx.Param("id")
+
+	id, err := uuid.Parse(userID)
+	if err != nil {
+		ctx.Error(typesystem.ServerError)
+		return
+	}
+
+	postid, err := uuid.Parse(postID)
+	if err != nil {
+		ctx.Error(typesystem.ServerError)
+		return
+	}
+
+	err = ps.PostService.DeletePost(ctx, postid, id)
+	if err != nil {
+		ctx.Error(err)
+		return
+	}
+
+	ctx.JSON(http.StatusOK, entity.Response{
+		Status:  http.StatusOK,
+		Message: "Post deleted successfully",
+	})
 }

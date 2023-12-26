@@ -26,10 +26,13 @@ func NewPost(userID *string, title string, content string) *Post {
 
 type PostRepository interface {
 	Create(ctx context.Context, post *Post) error
-	GetPosts(ctx context.Context, id string) ([]*Post, error)
+	GetPosts(ctx context.Context, id uuid.UUID) ([]*Post, error)
+	Delete(ctx context.Context, id uuid.UUID) error
+	GetPostByID(ctx context.Context, id uuid.UUID) (*Post, error)
 }
 
 type PostService interface {
 	Create(ctx context.Context, post *Post) error
-	GetPosts(ctx context.Context, id string) ([]*Post, error)
+	GetPosts(ctx context.Context, id uuid.UUID) ([]*Post, error)
+	DeletePost(ctx context.Context, id uuid.UUID, userID uuid.UUID) error
 }

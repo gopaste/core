@@ -1,9 +1,12 @@
 package services
 
 import (
+	"fmt"
+
 	"github.com/Caixetadev/snippet/internal/entity"
 	"github.com/Caixetadev/snippet/pkg/typesystem"
 	"github.com/Caixetadev/snippet/pkg/validation"
+	"github.com/google/uuid"
 	"golang.org/x/net/context"
 )
 
@@ -37,7 +40,7 @@ func (ps *PostService) Create(ctx context.Context, input *entity.Post) error {
 	return nil
 }
 
-func (ps *PostService) GetPosts(ctx context.Context, id string) ([]*entity.Post, error) {
+func (ps *PostService) GetPosts(ctx context.Context, id uuid.UUID) ([]*entity.Post, error) {
 	if len(id) == 0 {
 		return nil, typesystem.Unauthorized
 	}
@@ -48,4 +51,24 @@ func (ps *PostService) GetPosts(ctx context.Context, id string) ([]*entity.Post,
 	}
 
 	return posts, nil
+}
+
+func (ps *PostService) DeletePost(ctx context.Context, id uuid.UUID, userID uuid.UUID) error {
+	post, err := ps.postRepo.GetPostByID(ctx, id)
+	if err != nil {
+		fmt.Println(err)
+		return typesystem.ServerError
+	}
+
+	if *post.UserID != userID.String() {
+		return typesystem.Unauthorized
+	}
+
+	err = ps.postRepo.Delete(ctx, id)
+	if err != nil {
+		fmt.Println(err)
+		return typesystem.ServerError
+	}
+
+	return nil
 }
