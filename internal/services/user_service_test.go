@@ -314,3 +314,29 @@ func (suite *UserServiceTestSuite) TestVerifyCodeToResetPassword_Error() {
 	suite.NotNil(err)
 	suite.Equal(err, typesystem.ServerError)
 }
+
+func (suite *UserServiceTestSuite) TestVerifyToken() {
+	ctx := context.TODO()
+
+	output := &entity.Payload{}
+
+	suite.tokenMaker.On("VerifyToken", "token").Return(output, nil)
+
+	refreshToken, err := suite.userService.VerifyToken(ctx, "token")
+
+	suite.Nil(err)
+	suite.NotNil(refreshToken)
+}
+
+func (suite *UserServiceTestSuite) TestVerifyToken_Invalid() {
+	ctx := context.TODO()
+
+	output := &entity.Payload{}
+
+	suite.tokenMaker.On("VerifyToken", "token").Return(output, errors.New("error"))
+
+	accessToken, err := suite.userService.VerifyToken(ctx, "token")
+
+	suite.Error(err)
+	suite.Nil(accessToken)
+}
