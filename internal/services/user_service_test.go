@@ -340,3 +340,29 @@ func (suite *UserServiceTestSuite) TestVerifyToken_Invalid() {
 	suite.Error(err)
 	suite.Nil(accessToken)
 }
+
+func (suite *UserServiceTestSuite) TestGetSession() {
+	ctx := context.TODO()
+
+	id := uuid.New()
+
+	suite.mockRepo.On("GetSession", ctx, id).Return(&entity.Session{}, nil)
+
+	session, err := suite.userService.GetSession(ctx, id)
+
+	suite.Nil(err)
+	suite.NotNil(session)
+}
+
+func (suite *UserServiceTestSuite) TestGetSession_Error() {
+	ctx := context.TODO()
+
+	id := uuid.New()
+
+	suite.mockRepo.On("GetSession", ctx, id).Return(&entity.Session{}, errors.New("error"))
+
+	session, err := suite.userService.GetSession(ctx, id)
+
+	suite.Equal(err, typesystem.ServerError)
+	suite.Nil(session)
+}
