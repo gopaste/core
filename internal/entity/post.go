@@ -16,9 +16,9 @@ type Post struct {
 }
 
 type PostUpdateInput struct {
-	ID      uuid.UUID
-	Title   string
-	Content string
+	ID      uuid.UUID `json:"-"`
+	Title   string    `json:"title"`
+	Content string    `json:"content"`
 }
 
 func NewPost(userID *string, title string, content string) *Post {

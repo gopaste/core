@@ -11,11 +11,22 @@ definitions:
     properties:
       content:
         type: string
+      created_at:
+        type: string
+      id:
+        type: string
       title:
         type: string
     required:
     - content
     - title
+    type: object
+  entity.PostUpdateInput:
+    properties:
+      content:
+        type: string
+      title:
+        type: string
     type: object
   entity.ResetPasswordRequest:
     properties:
@@ -259,6 +270,34 @@ paths:
       security:
       - BearerAuth: []
       summary: Delete a post by ID
+      tags:
+      - Post
+    patch:
+      consumes:
+      - application/json
+      description: Update a post belonging to the logged-in user on the platform
+      parameters:
+      - description: Post ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Post
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/entity.PostUpdateInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Post updated successfully
+          schema:
+            $ref: '#/definitions/entity.Response'
+      security:
+      - BearerAuth: []
+      summary: Update a post by ID
       tags:
       - Post
   /post/all:

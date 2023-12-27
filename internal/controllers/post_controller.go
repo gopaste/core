@@ -122,6 +122,17 @@ func (ps *PostController) DeletePost(ctx *gin.Context) {
 	})
 }
 
+// @Summary	Update a post by ID
+// @Schemes		http
+// @Description	Update a post belonging to the logged-in user on the platform
+// @Tags			Post
+// @Accept			json
+// @Produce		json
+// @Security		BearerAuth
+// @Param			id	path	string	true	"Post ID"
+// @Param			request	body		entity.PostUpdateInput	true	"Post"
+// @Success		200		{object}	entity.Response	"Post updated successfully"
+// @Router			/post/{id} [patch]
 func (ps *PostController) UpdatePost(ctx *gin.Context) {
 	var payload entity.PostUpdateInput
 
