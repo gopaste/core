@@ -3,6 +3,8 @@ package repository
 import (
 	"context"
 	"database/sql"
+	"fmt"
+	"strings"
 
 	"github.com/Caixetadev/snippet/internal/entity"
 	"github.com/google/uuid"
@@ -24,7 +26,7 @@ func (pr *postRepository) Create(ctx context.Context, post *entity.Post) error {
 }
 
 func (pr *postRepository) GetPosts(ctx context.Context, id uuid.UUID) ([]*entity.Post, error) {
-	line, err := pr.db.Query(ctx, "SELECT title, content FROM posts WHERE user_id = $1", id)
+	line, err := pr.db.Query(ctx, "SELECT id, title, content, created_at FROM posts WHERE user_id = $1", id)
 	if err != nil {
 		return nil, err
 	}
@@ -35,7 +37,7 @@ func (pr *postRepository) GetPosts(ctx context.Context, id uuid.UUID) ([]*entity
 
 	for line.Next() {
 		post := &entity.Post{}
-		if err := line.Scan(&post.Title, &post.Content); err != nil {
+		if err := line.Scan(&post.ID, &post.Title, &post.Content, &post.CreatedAt); err != nil {
 			return nil, err
 		}
 
@@ -68,6 +70,36 @@ func (pr *postRepository) GetPostByID(ctx context.Context, id uuid.UUID) (*entit
 
 func (pr *postRepository) Delete(ctx context.Context, id uuid.UUID) error {
 	_, err := pr.db.Exec(ctx, "DELETE FROM posts WHERE id = $1", id)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// TODO: refactor this function
+func (pr *postRepository) Update(ctx context.Context, post *entity.PostUpdateInput) error {
+	query := "UPDATE posts SET"
+	var args []interface{}
+
+	if post.Title != "" {
+		query += fmt.Sprintf(" title = $%d,", len(args)+1)
+		args = append(args, post.Title)
+	}
+
+	if post.Content != "" {
+		query += fmt.Sprintf(" content = $%d,", len(args)+1)
+		args = append(args, post.Content)
+	}
+
+	fmt.Println("POSTS ", post)
+
+	query = strings.TrimSuffix(query, ",")
+
+	query += fmt.Sprintf(" WHERE id = $%d", len(args)+1)
+	args = append(args, post.ID)
+
+	_, err := pr.db.Exec(ctx, query, args...)
 	if err != nil {
 		return err
 	}

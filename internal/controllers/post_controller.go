@@ -121,3 +121,41 @@ func (ps *PostController) DeletePost(ctx *gin.Context) {
 		Message: "Post deleted successfully",
 	})
 }
+
+func (ps *PostController) UpdatePost(ctx *gin.Context) {
+	var payload entity.PostUpdateInput
+
+	err := ctx.ShouldBindJSON(&payload)
+	if err != nil {
+		ctx.Error(typesystem.BadRequest)
+		return
+	}
+
+	userID := ctx.GetString("x-user-id")
+	postID := ctx.Param("id")
+
+	id, err := uuid.Parse(userID)
+	if err != nil {
+		ctx.Error(typesystem.ServerError)
+		return
+	}
+
+	postid, err := uuid.Parse(postID)
+	if err != nil {
+		ctx.Error(typesystem.ServerError)
+		return
+	}
+
+	err = ps.PostService.UpdatePost(ctx, &payload, id, postid)
+	if err != nil {
+		ctx.Error(err)
+		return
+	}
+
+	response := entity.Response{
+		Status:  http.StatusOK,
+		Message: "Post updated successfully",
+	}
+
+	ctx.JSON(http.StatusOK, response)
+}
