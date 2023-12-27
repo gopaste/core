@@ -84,6 +84,16 @@ func (ps *PostController) GetPosts(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, response)
 }
 
+// @Summary	Delete a post by ID
+// @Schemes		http
+// @Description	Delete a post belonging to the logged-in user on the platform
+// @Tags			Post
+// @Accept			json
+// @Produce		json
+// @Security		BearerAuth
+// @Param			id	path	string	true	"Post ID"
+// @Success		200		{object}	entity.Response	"Post deleted successfully"
+// @Router			/post/{id} [delete]
 func (ps *PostController) DeletePost(ctx *gin.Context) {
 	userID := ctx.GetString("x-user-id")
 	postID := ctx.Param("id")
