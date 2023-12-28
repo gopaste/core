@@ -24,4 +24,5 @@ func NewPostRouter(cfg *config.Config, db *pgxpool.Pool, group *gin.RouterGroup,
 	group.GET("/post/all", pc.GetPosts)
 	group.DELETE("/post/:id", pc.DeletePost)
 	group.PATCH("/post/:id", pc.UpdatePost)
+	group.GET("/post/search", pc.SearchPost)
 }

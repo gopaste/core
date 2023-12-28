@@ -65,6 +65,17 @@ func (pr *postRepository) Count(ctx context.Context, id uuid.UUID) (int, error) 
 	return count, nil
 }
 
+func (pr *postRepository) CountByQuery(ctx context.Context, query string) (int, error) {
+	var count int
+
+	err := pr.db.QueryRow(ctx, "SELECT COUNT(*) FROM posts WHERE title ILIKE '%' || $1 || '%' OR content ILIKE '%' || $1 || '%'", query).Scan(&count)
+	if err != nil {
+		return 0, err
+	}
+
+	return count, nil
+}
+
 func (pr *postRepository) GetPostByID(ctx context.Context, id uuid.UUID) (*entity.Post, error) {
 	line, err := pr.db.Query(ctx, "SELECT id, user_id, title, content FROM posts WHERE id = $1", id)
 	if err != nil {
@@ -123,4 +134,33 @@ func (pr *postRepository) Update(ctx context.Context, post *entity.PostUpdateInp
 	}
 
 	return nil
+}
+
+func (pr *postRepository) Search(ctx context.Context, q string, limit int, offset int) ([]*entity.Post, error) {
+	query := `
+SELECT id, title, content, created_at
+FROM posts
+WHERE title ILIKE '%' || $1 || '%' OR content ILIKE '%' || $1 || '%'
+ORDER BY created_at DESC, id DESC
+LIMIT $2 OFFSET $3;
+	`
+	line, err := pr.db.Query(ctx, query, q, limit, offset)
+	if err != nil {
+		return nil, err
+	}
+
+	defer line.Close()
+
+	var posts []*entity.Post
+
+	for line.Next() {
+		post := &entity.Post{}
+		if err := line.Scan(&post.ID, &post.Title, &post.Content, &post.CreatedAt); err != nil {
+			return nil, err
+		}
+
+		posts = append(posts, post)
+	}
+
+	return posts, nil
 }

@@ -172,3 +172,23 @@ func (ps *PostController) UpdatePost(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, response)
 }
+
+func (ps *PostController) SearchPost(ctx *gin.Context) {
+	query := ctx.Query("q")
+	page := ctx.Query("page")
+
+	post, paginationInfo, err := ps.PostService.SearchPost(ctx, query, page)
+	if err != nil {
+		ctx.Error(err)
+		return
+	}
+
+	response := entity.Response{
+		Status:  http.StatusOK,
+		Message: "Post retrieved successfully",
+		Data:    post,
+		Info:    paginationInfo,
+	}
+
+	ctx.JSON(http.StatusOK, response)
+}

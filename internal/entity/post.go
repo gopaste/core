@@ -44,8 +44,10 @@ type PostRepository interface {
 	GetPosts(ctx context.Context, id uuid.UUID, limit int, offset int) ([]*Post, error)
 	Delete(ctx context.Context, id uuid.UUID) error
 	Count(ctx context.Context, id uuid.UUID) (int, error)
+	CountByQuery(ctx context.Context, query string) (int, error)
 	GetPostByID(ctx context.Context, id uuid.UUID) (*Post, error)
 	Update(ctx context.Context, post *PostUpdateInput) error
+	Search(ctx context.Context, query string, limit int, offset int) ([]*Post, error)
 }
 
 type PostService interface {
@@ -53,4 +55,5 @@ type PostService interface {
 	GetPosts(ctx context.Context, id uuid.UUID, page string) ([]*Post, *PaginationInfo, error)
 	DeletePost(ctx context.Context, id uuid.UUID, userID uuid.UUID) error
 	UpdatePost(ctx context.Context, post *PostUpdateInput, userID uuid.UUID, id uuid.UUID) error
+	SearchPost(ctx context.Context, query string, page string) ([]*Post, *PaginationInfo, error)
 }

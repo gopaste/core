@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"strconv"
 
 	"github.com/Caixetadev/snippet/internal/entity"
 	"github.com/Caixetadev/snippet/internal/utils"
@@ -45,47 +44,33 @@ func (ps *PostService) Create(ctx context.Context, input *entity.Post) error {
 }
 
 func (ps *PostService) GetPosts(ctx context.Context, id uuid.UUID, pageStr string) ([]*entity.Post, *entity.PaginationInfo, error) {
-	if pageStr == "" {
-		pageStr = "1"
-	}
-
-	page, err := strconv.Atoi(pageStr)
-	if err != nil || page < 1 {
-		return nil, nil, typesystem.BadRequest
-	}
-
 	count, err := ps.postRepo.Count(ctx, id)
 	if err != nil {
 		return nil, nil, typesystem.ServerError
 	}
 
-	limit := 10
-
-	totalPages := (count + limit - 1) / limit
-
-	if totalPages < page {
-		return nil, nil, typesystem.NotFound
+	pageResponse, err := utils.CalculePagination(count, pageStr)
+	if err != nil {
+		return nil, nil, err
 	}
 
-	offset := (page - 1) * limit
-
-	posts, err := ps.postRepo.GetPosts(ctx, id, limit, offset)
+	posts, err := ps.postRepo.GetPosts(ctx, id, pageResponse.Limit, pageResponse.Offset)
 	if err != nil {
 		return nil, nil, typesystem.ServerError
 	}
 
 	nextPage, prevPage := "", ""
-	if len(posts) == limit {
-		nextPage = fmt.Sprintf("/post/all?page=%d", page+1)
+	if len(posts) == pageResponse.Limit {
+		nextPage = fmt.Sprintf("/post/all?page=%d", pageResponse.Page+1)
 	}
-	if page > 1 {
-		prevPage = fmt.Sprintf("/post/all?page=%d", page-1)
+	if pageResponse.Page > 1 {
+		prevPage = fmt.Sprintf("/post/all?page=%d", pageResponse.Page-1)
 	}
 
 	paginationInfo := &entity.PaginationInfo{
 		Next:  utils.StringToPtr(nextPage),
 		Prev:  utils.StringToPtr(prevPage),
-		Pages: totalPages,
+		Pages: pageResponse.Total,
 		Count: count,
 	}
 
@@ -134,4 +119,38 @@ func (ps *PostService) UpdatePost(ctx context.Context, post *entity.PostUpdateIn
 	}
 
 	return nil
+}
+
+func (ps *PostService) SearchPost(ctx context.Context, query string, pageStr string) ([]*entity.Post, *entity.PaginationInfo, error) {
+	count, err := ps.postRepo.CountByQuery(ctx, query)
+	if err != nil {
+		return nil, nil, typesystem.ServerError
+	}
+
+	pageResponse, err := utils.CalculePagination(count, pageStr)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	posts, err := ps.postRepo.Search(ctx, query, pageResponse.Limit, pageResponse.Offset)
+	if err != nil {
+		return nil, nil, typesystem.ServerError
+	}
+
+	nextPage, prevPage := "", ""
+	if len(posts) == pageResponse.Limit {
+		nextPage = fmt.Sprintf("/post/search?q=%s&page=%d", query, pageResponse.Page+1)
+	}
+	if pageResponse.Page > 1 {
+		prevPage = fmt.Sprintf("/post/search?q=%s&page=%d", query, pageResponse.Page-1)
+	}
+
+	paginationInfo := &entity.PaginationInfo{
+		Next:  utils.StringToPtr(nextPage),
+		Prev:  utils.StringToPtr(prevPage),
+		Pages: pageResponse.Total,
+		Count: count,
+	}
+
+	return posts, paginationInfo, nil
 }
