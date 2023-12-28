@@ -62,6 +62,7 @@ func (ps *PostController) Post(ctx *gin.Context) {
 // @Router			/post/all [get]
 func (ps *PostController) GetPosts(ctx *gin.Context) {
 	userID := ctx.GetString("x-user-id")
+	pageStr := ctx.Query("page")
 
 	id, err := uuid.Parse(userID)
 	if err != nil {
@@ -69,7 +70,7 @@ func (ps *PostController) GetPosts(ctx *gin.Context) {
 		return
 	}
 
-	posts, err := ps.PostService.GetPosts(ctx, id)
+	posts, paginationInfo, err := ps.PostService.GetPosts(ctx, id, pageStr)
 	if err != nil {
 		ctx.Error(err)
 		return
@@ -78,6 +79,7 @@ func (ps *PostController) GetPosts(ctx *gin.Context) {
 	response := entity.Response{
 		Status:  http.StatusOK,
 		Message: "Posts retrieved successfully",
+		Info:    paginationInfo,
 		Data:    posts,
 	}
 

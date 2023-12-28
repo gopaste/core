@@ -25,8 +25,15 @@ func (pr *postRepository) Create(ctx context.Context, post *entity.Post) error {
 	return err
 }
 
-func (pr *postRepository) GetPosts(ctx context.Context, id uuid.UUID) ([]*entity.Post, error) {
-	line, err := pr.db.Query(ctx, "SELECT id, title, content, created_at FROM posts WHERE user_id = $1", id)
+func (pr *postRepository) GetPosts(ctx context.Context, id uuid.UUID, limit int, offset int) ([]*entity.Post, error) {
+	query := `
+		SELECT id, title, content, created_at
+		FROM posts
+		WHERE user_id = $1
+		ORDER BY created_at ASC, id ASC
+		LIMIT $2 OFFSET $3;
+	`
+	line, err := pr.db.Query(ctx, query, id, limit, offset)
 	if err != nil {
 		return nil, err
 	}
@@ -45,6 +52,17 @@ func (pr *postRepository) GetPosts(ctx context.Context, id uuid.UUID) ([]*entity
 	}
 
 	return posts, nil
+}
+
+func (pr *postRepository) Count(ctx context.Context, id uuid.UUID) (int, error) {
+	var count int
+
+	err := pr.db.QueryRow(ctx, "SELECT COUNT(*) FROM posts WHERE user_id = $1", id).Scan(&count)
+	if err != nil {
+		return 0, err
+	}
+
+	return count, nil
 }
 
 func (pr *postRepository) GetPostByID(ctx context.Context, id uuid.UUID) (*entity.Post, error) {
