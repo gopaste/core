@@ -40,12 +40,12 @@ func NewPost(userID *string, title string, content string) *Post {
 }
 
 type PostRepository interface {
-	Create(ctx context.Context, post *Post) error
-	GetPosts(ctx context.Context, id uuid.UUID, limit int, offset int) ([]*Post, error)
+	Insert(ctx context.Context, post *Post) error
+	FindAll(ctx context.Context, id uuid.UUID, limit int, offset int) ([]*Post, error)
 	Delete(ctx context.Context, id uuid.UUID) error
-	Count(ctx context.Context, id uuid.UUID) (int, error)
-	CountByQuery(ctx context.Context, query string) (int, error)
-	GetPostByID(ctx context.Context, id uuid.UUID) (*Post, error)
+	CountUserPosts(ctx context.Context, id uuid.UUID) (int, error)
+	CountPostsInSearch(ctx context.Context, query string) (int, error)
+	FindOneByID(ctx context.Context, id uuid.UUID) (*Post, error)
 	Update(ctx context.Context, post *PostUpdateInput) error
 	Search(ctx context.Context, query string, limit int, offset int) ([]*Post, error)
 }

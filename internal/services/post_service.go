@@ -35,7 +35,7 @@ func (ps *PostService) Create(ctx context.Context, input *entity.Post) error {
 		post.UserID = nil
 	}
 
-	err = ps.postRepo.Create(ctx, post)
+	err = ps.postRepo.Insert(ctx, post)
 	if err != nil {
 		return typesystem.ServerError
 	}
@@ -44,7 +44,7 @@ func (ps *PostService) Create(ctx context.Context, input *entity.Post) error {
 }
 
 func (ps *PostService) GetPosts(ctx context.Context, id uuid.UUID, pageStr string) ([]*entity.Post, *entity.PaginationInfo, error) {
-	count, err := ps.postRepo.Count(ctx, id)
+	count, err := ps.postRepo.CountUserPosts(ctx, id)
 	if err != nil {
 		return nil, nil, typesystem.ServerError
 	}
@@ -54,7 +54,7 @@ func (ps *PostService) GetPosts(ctx context.Context, id uuid.UUID, pageStr strin
 		return nil, nil, err
 	}
 
-	posts, err := ps.postRepo.GetPosts(ctx, id, pageResponse.Limit, pageResponse.Offset)
+	posts, err := ps.postRepo.FindAll(ctx, id, pageResponse.Limit, pageResponse.Offset)
 	if err != nil {
 		return nil, nil, typesystem.ServerError
 	}
@@ -78,7 +78,7 @@ func (ps *PostService) GetPosts(ctx context.Context, id uuid.UUID, pageStr strin
 }
 
 func (ps *PostService) DeletePost(ctx context.Context, id uuid.UUID, userID uuid.UUID) error {
-	post, err := ps.postRepo.GetPostByID(ctx, id)
+	post, err := ps.postRepo.FindOneByID(ctx, id)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return typesystem.NotFound
@@ -99,7 +99,7 @@ func (ps *PostService) DeletePost(ctx context.Context, id uuid.UUID, userID uuid
 }
 
 func (ps *PostService) UpdatePost(ctx context.Context, post *entity.PostUpdateInput, userID uuid.UUID, id uuid.UUID) error {
-	postInDatabase, err := ps.postRepo.GetPostByID(ctx, id)
+	postInDatabase, err := ps.postRepo.FindOneByID(ctx, id)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return typesystem.NotFound
@@ -122,7 +122,7 @@ func (ps *PostService) UpdatePost(ctx context.Context, post *entity.PostUpdateIn
 }
 
 func (ps *PostService) SearchPost(ctx context.Context, query string, pageStr string) ([]*entity.Post, *entity.PaginationInfo, error) {
-	count, err := ps.postRepo.CountByQuery(ctx, query)
+	count, err := ps.postRepo.CountPostsInSearch(ctx, query)
 	if err != nil {
 		return nil, nil, typesystem.ServerError
 	}

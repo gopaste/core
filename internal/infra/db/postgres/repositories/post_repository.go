@@ -19,13 +19,13 @@ func NewPostRepository(db *pgxpool.Pool) *postRepository {
 	return &postRepository{db: db}
 }
 
-func (pr *postRepository) Create(ctx context.Context, post *entity.Post) error {
+func (pr *postRepository) Insert(ctx context.Context, post *entity.Post) error {
 	_, err := pr.db.Exec(ctx, "INSERT INTO posts (id, user_id, title, content) VALUES ($1, $2, $3, $4)", post.ID, post.UserID, post.Title, post.Content)
 
 	return err
 }
 
-func (pr *postRepository) GetPosts(ctx context.Context, id uuid.UUID, limit int, offset int) ([]*entity.Post, error) {
+func (pr *postRepository) FindAll(ctx context.Context, id uuid.UUID, limit int, offset int) ([]*entity.Post, error) {
 	query := `
 		SELECT id, title, content, created_at
 		FROM posts
@@ -54,7 +54,7 @@ func (pr *postRepository) GetPosts(ctx context.Context, id uuid.UUID, limit int,
 	return posts, nil
 }
 
-func (pr *postRepository) Count(ctx context.Context, id uuid.UUID) (int, error) {
+func (pr *postRepository) CountUserPosts(ctx context.Context, id uuid.UUID) (int, error) {
 	var count int
 
 	err := pr.db.QueryRow(ctx, "SELECT COUNT(*) FROM posts WHERE user_id = $1", id).Scan(&count)
@@ -65,7 +65,7 @@ func (pr *postRepository) Count(ctx context.Context, id uuid.UUID) (int, error) 
 	return count, nil
 }
 
-func (pr *postRepository) CountByQuery(ctx context.Context, query string) (int, error) {
+func (pr *postRepository) CountPostsInSearch(ctx context.Context, query string) (int, error) {
 	var count int
 
 	err := pr.db.QueryRow(ctx, "SELECT COUNT(*) FROM posts WHERE title ILIKE '%' || $1 || '%' OR content ILIKE '%' || $1 || '%'", query).Scan(&count)
@@ -76,7 +76,7 @@ func (pr *postRepository) CountByQuery(ctx context.Context, query string) (int, 
 	return count, nil
 }
 
-func (pr *postRepository) GetPostByID(ctx context.Context, id uuid.UUID) (*entity.Post, error) {
+func (pr *postRepository) FindOneByID(ctx context.Context, id uuid.UUID) (*entity.Post, error) {
 	line, err := pr.db.Query(ctx, "SELECT id, user_id, title, content FROM posts WHERE id = $1", id)
 	if err != nil {
 		return nil, err

@@ -45,7 +45,7 @@ func (suite *PostServiceTestSuite) TestCreate() {
 	}
 
 	suite.validation.On("Validate", mock.Anything).Return(nil).Once()
-	suite.mocksRepo.On("Create", ctx, mock.Anything).Return(nil).Once()
+	suite.mocksRepo.On("Insert", ctx, mock.Anything).Return(nil).Once()
 
 	err := suite.postService.Create(ctx, input)
 
@@ -67,7 +67,7 @@ func (suite *PostServiceTestSuite) TestCreate_UserAnonymous() {
 	}
 
 	suite.validation.On("Validate", mock.Anything).Return(nil).Once()
-	suite.mocksRepo.On("Create", ctx, mock.Anything).Return(nil).Once()
+	suite.mocksRepo.On("Insert", ctx, mock.Anything).Return(nil).Once()
 
 	err := suite.postService.Create(ctx, input)
 
@@ -107,7 +107,7 @@ func (suite *PostServiceTestSuite) TestCreate_PostRepositoryError() {
 	}
 
 	suite.validation.On("Validate", mock.Anything).Return(nil).Once()
-	suite.mocksRepo.On("Create", ctx, mock.Anything).Return(errors.New("error")).Once()
+	suite.mocksRepo.On("Insert", ctx, mock.Anything).Return(errors.New("error")).Once()
 
 	err := suite.postService.Create(ctx, input)
 
@@ -122,6 +122,7 @@ func (suite *PostServiceTestSuite) TestGetPosts() {
 
 	userID := uuid.New()
 	userIDStr := userID.String()
+	page := "1"
 
 	output := []*entity.Post{
 		{
@@ -132,9 +133,10 @@ func (suite *PostServiceTestSuite) TestGetPosts() {
 		},
 	}
 
-	suite.mocksRepo.On("GetPosts", ctx, mock.Anything).Return(output, nil).Once()
+	suite.mocksRepo.On("CountUserPosts", ctx, userID).Return(10, nil).Once()
+	suite.mocksRepo.On("FindAll", ctx, mock.Anything).Return(output, nil).Once()
 
-	posts, err := suite.postService.GetPosts(ctx, userID)
+	posts, _, err := suite.postService.GetPosts(ctx, userID, page)
 
 	suite.NoError(err)
 	suite.Equal(output, posts)
@@ -146,9 +148,11 @@ func (suite *PostServiceTestSuite) TestGetPosts_PostRepositoryError() {
 	ctx := context.TODO()
 
 	userID := uuid.New()
+	page := "1"
 
-	suite.mocksRepo.On("GetPosts", ctx, mock.Anything).Return([]*entity.Post{}, errors.New("error")).Once()
-	posts, err := suite.postService.GetPosts(ctx, userID)
+	suite.mocksRepo.On("FindAll", ctx, mock.Anything).Return([]*entity.Post{}, errors.New("error")).Once()
+	suite.mocksRepo.On("CountUserPosts", ctx, userID).Return(10, nil).Once()
+	posts, _, err := suite.postService.GetPosts(ctx, userID, page)
 
 	suite.Equal(typesystem.ServerError, err)
 	suite.Nil(posts)
@@ -170,7 +174,7 @@ func (suite *PostServiceTestSuite) TestDeletePost() {
 		Content: "Body",
 	}
 
-	suite.mocksRepo.On("GetPostByID", ctx, postID).Return(output, nil).Once()
+	suite.mocksRepo.On("FindOneByID", ctx, postID).Return(output, nil).Once()
 	suite.mocksRepo.On("Delete", ctx, postID).Return(nil).Once()
 
 	err := suite.postService.DeletePost(ctx, postID, userID)
@@ -196,7 +200,7 @@ func (suite *PostServiceTestSuite) TestDeletePost_UserNonAuth() {
 		Content: "Body",
 	}
 
-	suite.mocksRepo.On("GetPostByID", ctx, postID).Return(output, nil).Once()
+	suite.mocksRepo.On("FindOneByID", ctx, postID).Return(output, nil).Once()
 
 	err := suite.postService.DeletePost(ctx, postID, userIDNon)
 
@@ -211,7 +215,7 @@ func (suite *PostServiceTestSuite) TestDeletePost_PostNotFound() {
 	userID := uuid.New()
 	postID := uuid.New()
 
-	suite.mocksRepo.On("GetPostByID", ctx, postID).Return(&entity.Post{}, sql.ErrNoRows).Once()
+	suite.mocksRepo.On("FindOneByID", ctx, postID).Return(&entity.Post{}, sql.ErrNoRows).Once()
 
 	err := suite.postService.DeletePost(ctx, postID, userID)
 
@@ -226,7 +230,7 @@ func (suite *PostServiceTestSuite) TestDeletePost_GetPostsRepositoryError() {
 	userID := uuid.New()
 	postID := uuid.New()
 
-	suite.mocksRepo.On("GetPostByID", ctx, postID).Return(&entity.Post{}, errors.New("error")).Once()
+	suite.mocksRepo.On("FindOneByID", ctx, postID).Return(&entity.Post{}, errors.New("error")).Once()
 
 	err := suite.postService.DeletePost(ctx, postID, userID)
 
@@ -249,7 +253,7 @@ func (suite *PostServiceTestSuite) TestDeletePost_DeleteRepositoryError() {
 		Content: "Body",
 	}
 
-	suite.mocksRepo.On("GetPostByID", ctx, postID).Return(output, nil).Once()
+	suite.mocksRepo.On("FindOneByID", ctx, postID).Return(output, nil).Once()
 	suite.mocksRepo.On("Delete", ctx, postID).Return(errors.New("error")).Once()
 
 	err := suite.postService.DeletePost(ctx, postID, userID)
