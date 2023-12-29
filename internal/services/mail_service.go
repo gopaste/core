@@ -38,7 +38,7 @@ func (e *SimpleEmailService) SendResetPasswordEmail(user *entity.User) (string, 
 
 	htmlBody := entity.GetHTMLTemplate(mailData)
 
-	input := BuildEmail(user.Email, htmlBody, "Reset Password", e.Env.AWSSenderEmail)
+	input := entity.NewEmail(user.Email, htmlBody, "Reset Password", e.Env.AWSSenderEmail)
 
 	_, err := e.sesClient.SendEmail(input)
 	if err != nil {
@@ -47,27 +47,4 @@ func (e *SimpleEmailService) SendResetPasswordEmail(user *entity.User) (string, 
 	}
 
 	return mailData.Code, nil
-}
-
-const charset = "UTF-8"
-
-func BuildEmail(toEmail, htmlBody, subject, sourceEmail string) *ses.SendEmailInput {
-	return &ses.SendEmailInput{
-		Destination: &ses.Destination{
-			ToAddresses: []*string{aws.String(toEmail)},
-		},
-		Message: &ses.Message{
-			Body: &ses.Body{
-				Html: &ses.Content{
-					Charset: aws.String(charset),
-					Data:    aws.String(htmlBody),
-				},
-			},
-			Subject: &ses.Content{
-				Charset: aws.String(charset),
-				Data:    aws.String(subject),
-			},
-		},
-		Source: aws.String(sourceEmail),
-	}
 }
