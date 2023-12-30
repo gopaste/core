@@ -154,3 +154,15 @@ func (ps *PostService) SearchPost(ctx context.Context, query string, pageStr str
 
 	return posts, paginationInfo, nil
 }
+
+func (ps *PostService) GetPost(ctx context.Context, id uuid.UUID) (*entity.Post, error) {
+	post, err := ps.postRepo.FindOneByID(ctx, id)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, typesystem.NotFound
+		}
+		return nil, typesystem.ServerError
+	}
+
+	return post, nil
+}

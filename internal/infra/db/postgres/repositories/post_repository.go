@@ -27,10 +27,10 @@ func (pr *postRepository) Insert(ctx context.Context, post *entity.Post) error {
 
 func (pr *postRepository) FindAll(ctx context.Context, id uuid.UUID, limit int, offset int) ([]*entity.Post, error) {
 	query := `
-		SELECT id, title, content, created_at
+		SELECT id, title, created_at
 		FROM posts
 		WHERE user_id = $1
-		ORDER BY created_at ASC, id ASC
+		ORDER BY created_at DESC
 		LIMIT $2 OFFSET $3;
 	`
 	line, err := pr.db.Query(ctx, query, id, limit, offset)
@@ -44,7 +44,7 @@ func (pr *postRepository) FindAll(ctx context.Context, id uuid.UUID, limit int, 
 
 	for line.Next() {
 		post := &entity.Post{}
-		if err := line.Scan(&post.ID, &post.Title, &post.Content, &post.CreatedAt); err != nil {
+		if err := line.Scan(&post.ID, &post.Title, &post.CreatedAt); err != nil {
 			return nil, err
 		}
 
@@ -77,7 +77,7 @@ func (pr *postRepository) CountPostsInSearch(ctx context.Context, query string) 
 }
 
 func (pr *postRepository) FindOneByID(ctx context.Context, id uuid.UUID) (*entity.Post, error) {
-	line, err := pr.db.Query(ctx, "SELECT id, user_id, title, content FROM posts WHERE id = $1", id)
+	line, err := pr.db.Query(ctx, "SELECT id, user_id, title, content, created_at FROM posts WHERE id = $1", id)
 	if err != nil {
 		return nil, err
 	}
@@ -87,7 +87,7 @@ func (pr *postRepository) FindOneByID(ctx context.Context, id uuid.UUID) (*entit
 	var post entity.Post
 
 	if line.Next() {
-		if err := line.Scan(&post.ID, &post.UserID, &post.Title, &post.Content); err != nil {
+		if err := line.Scan(&post.ID, &post.UserID, &post.Title, &post.Content, &post.CreatedAt); err != nil {
 			return nil, err
 		}
 	} else {
@@ -120,8 +120,6 @@ func (pr *postRepository) Update(ctx context.Context, post *entity.PostUpdateInp
 		query += fmt.Sprintf(" content = $%d,", len(args)+1)
 		args = append(args, post.Content)
 	}
-
-	fmt.Println("POSTS ", post)
 
 	query = strings.TrimSuffix(query, ",")
 

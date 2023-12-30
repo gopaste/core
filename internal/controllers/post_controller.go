@@ -192,3 +192,27 @@ func (ps *PostController) SearchPost(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, response)
 }
+
+func (ps *PostController) GetPost(ctx *gin.Context) {
+	postID := ctx.Param("id")
+
+	id, err := uuid.Parse(postID)
+	if err != nil {
+		ctx.Error(typesystem.BadRequest)
+		return
+	}
+
+	post, err := ps.PostService.GetPost(ctx, id)
+	if err != nil {
+		ctx.Error(err)
+		return
+	}
+
+	response := entity.Response{
+		Status:  http.StatusOK,
+		Message: "Post retrieved successfully",
+		Data:    post,
+	}
+
+	ctx.JSON(http.StatusOK, response)
+}

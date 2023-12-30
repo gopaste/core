@@ -11,7 +11,7 @@ type Post struct {
 	ID        uuid.UUID `json:"id"`
 	UserID    *string   `json:"-"`
 	Title     string    `json:"title" validate:"required" binding:"required"`
-	Content   string    `json:"content" validate:"required" binding:"required"`
+	Content   string    `json:"content,omitempty" validate:"required" binding:"required"`
 	CreatedAt time.Time `json:"created_at"`
 }
 
@@ -56,4 +56,5 @@ type PostService interface {
 	DeletePost(ctx context.Context, id uuid.UUID, userID uuid.UUID) error
 	UpdatePost(ctx context.Context, post *PostUpdateInput, userID uuid.UUID, id uuid.UUID) error
 	SearchPost(ctx context.Context, query string, page string) ([]*Post, *PaginationInfo, error)
+	GetPost(ctx context.Context, id uuid.UUID) (*Post, error)
 }
