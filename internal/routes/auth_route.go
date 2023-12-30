@@ -4,6 +4,7 @@ import (
 	"github.com/Caixetadev/snippet/config"
 	"github.com/Caixetadev/snippet/internal/controllers"
 	repository "github.com/Caixetadev/snippet/internal/infra/db/postgres/repositories"
+	"github.com/Caixetadev/snippet/internal/middleware"
 	"github.com/Caixetadev/snippet/internal/services"
 	"github.com/Caixetadev/snippet/internal/token"
 	"github.com/Caixetadev/snippet/pkg/passwordhash"
@@ -32,4 +33,5 @@ func NewAuthRouter(cfg *config.Config, db *pgxpool.Pool, group *gin.RouterGroup,
 	group.POST("/auth/forgot-password", ac.ForgotPassword)
 	group.POST("/auth/refresh-token", ac.RefreshToken)
 	group.PUT("/auth/reset-password/:resetToken", ac.ResetPassword)
+	group.GET("/auth/me", middleware.AuthPostMiddleware(tokenMaker), ac.Me)
 }

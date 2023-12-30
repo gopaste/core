@@ -51,6 +51,27 @@ func (ur *userRepository) GetUserByEmail(ctx context.Context, email string) (*en
 	return &user, nil
 }
 
+func (ur *userRepository) GetByID(ctx context.Context, id uuid.UUID) (*entity.User, error) {
+	line, err := ur.db.Query(ctx, "SELECT id, name, email FROM users WHERE id = $1", id)
+	if err != nil {
+		return nil, err
+	}
+
+	defer line.Close()
+
+	var user entity.User
+
+	if line.Next() {
+		if err = line.Scan(&user.ID, &user.Name, &user.Email); err != nil {
+			return nil, err
+		}
+	} else {
+		return nil, pgx.ErrNoRows
+	}
+
+	return &user, nil
+}
+
 func (ur *userRepository) UserExistsByEmail(ctx context.Context, email string) (bool, error) {
 	var exists bool
 	err := ur.db.QueryRow(ctx, "SELECT EXISTS(SELECT 1 FROM users WHERE email = $1)", email).Scan(&exists)

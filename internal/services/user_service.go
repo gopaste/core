@@ -55,6 +55,18 @@ func (us *UserService) Create(ctx context.Context, input *entity.User) (*entity.
 	return user, nil
 }
 
+func (us *UserService) GetUserByID(ctx context.Context, id uuid.UUID) (*entity.User, error) {
+	user, err := us.userRepository.GetByID(ctx, id)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			return nil, typesystem.NotFound
+		}
+		return nil, typesystem.ServerError
+	}
+
+	return user, nil
+}
+
 func (us *UserService) GetUserByEmail(ctx context.Context, email string) (*entity.User, error) {
 	user, err := us.userRepository.GetUserByEmail(ctx, email)
 

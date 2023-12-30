@@ -11,7 +11,7 @@ type User struct {
 	ID       uuid.UUID `json:"-"`
 	Name     string    `json:"name"         validate:"required"       binding:"required"`
 	Email    string    `json:"email"        validate:"required,email" binding:"required"`
-	Password string    `json:"password"     validate:"required"       binding:"required"`
+	Password string    `json:"password,omitempty"     validate:"required"       binding:"required"`
 }
 
 func NewUser(name, email, password string) *User {
@@ -28,6 +28,7 @@ func NewUser(name, email, password string) *User {
 type UserRepository interface {
 	GetUserByEmail(ctx context.Context, email string) (*User, error)
 	Create(ctx context.Context, user *User) error
+	GetByID(ctx context.Context, id uuid.UUID) (*User, error)
 	UserExistsByEmail(ctx context.Context, email string) (bool, error)
 	StoreVerificationData(ctx context.Context, verificationData *VerificationData) error
 	UpdatePassword(ctx context.Context, password string, id uuid.UUID) error
@@ -39,6 +40,7 @@ type UserRepository interface {
 
 type UserService interface {
 	GetUserByEmail(ctx context.Context, email string) (*User, error)
+	GetUserByID(ctx context.Context, id uuid.UUID) (*User, error)
 	Create(ctx context.Context, user *User) (*User, error)
 	UserExistsByEmail(ctx context.Context, email string) (bool, error)
 	CreateAccessToken(user *User, expiry time.Duration) (string, *Payload, error)
