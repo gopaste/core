@@ -5,3 +5,7 @@ CREATE TABLE IF NOT EXISTS public.posts (
     content TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE INDEX idx_posts_title ON public.posts(title);
+CREATE INDEX idx_posts_content ON public.posts(content);
+CREATE INDEX idx_posts_created_at_id ON public.posts(created_at DESC, id DESC);
