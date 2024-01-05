@@ -21,4 +21,5 @@ func Run(cfg *config.Config, db *pgxpool.Pool, router *gin.Engine, validation va
 
 	protectedRouter.Use(middleware.AuthPostMiddleware(tokenMaker))
 	routes.NewPostRouter(cfg, db, protectedRouter, validation)
+	routes.NewUserRouter(cfg, db, protectedRouter, validation, tokenMaker)
 }

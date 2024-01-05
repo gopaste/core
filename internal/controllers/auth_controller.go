@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"fmt"
 	"net/http"
 	"time"
 
@@ -9,42 +8,12 @@ import (
 	"github.com/Caixetadev/snippet/internal/entity"
 	"github.com/Caixetadev/snippet/pkg/typesystem"
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 )
 
 type AuthController struct {
 	UserService  entity.UserService
 	EmailService entity.EmailService
 	Env          *config.Config
-}
-
-func (ac *AuthController) Me(ctx *gin.Context) {
-	userID := ctx.GetString("x-user-id")
-	fmt.Println(userID)
-	if userID == "" {
-		ctx.Error(typesystem.Unauthorized)
-		return
-	}
-
-	id, err := uuid.Parse(userID)
-	if err != nil {
-		ctx.Error(err)
-		return
-	}
-
-	user, err := ac.UserService.GetUserByID(ctx, id)
-	if err != nil {
-		ctx.Error(err)
-		return
-	}
-
-	response := entity.Response{
-		Status:  http.StatusOK,
-		Message: "User retrieved successfully",
-		Data:    user,
-	}
-
-	ctx.JSON(http.StatusOK, response)
 }
 
 // @Summary	Create account
