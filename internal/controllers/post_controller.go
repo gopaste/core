@@ -173,6 +173,15 @@ func (ps *PostController) UpdatePost(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, response)
 }
 
+// @Summary     Search a post
+// @Schemes     http
+// @Description Search a post on the platform
+// @Tags        Post
+// @Accept      json
+// @Produce     json
+// @Param       q     query    string    true   "Query"
+// @Success     200   {object} entity.Response   "Post updated successfully"
+// @Router      /post/search   [get]
 func (ps *PostController) SearchPost(ctx *gin.Context) {
 	query := ctx.Query("q")
 	page := ctx.Query("page")

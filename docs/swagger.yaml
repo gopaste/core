@@ -41,6 +41,7 @@ definitions:
   entity.Response:
     properties:
       data: {}
+      info: {}
       message:
         type: string
       status:
@@ -339,6 +340,27 @@ paths:
           schema:
             $ref: '#/definitions/entity.Response'
       summary: Create a post
+      tags:
+      - Post
+  /post/search:
+    get:
+      consumes:
+      - application/json
+      description: Search a post on the platform
+      parameters:
+      - description: Query
+        in: query
+        name: q
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Post updated successfully
+          schema:
+            $ref: '#/definitions/entity.Response'
+      summary: Search a post
       tags:
       - Post
 securityDefinitions:

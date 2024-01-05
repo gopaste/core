@@ -317,6 +317,38 @@ const docTemplate = `{
                 }
             }
         },
+        "/post/search": {
+            "get": {
+                "description": "Search a post on the platform",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Post"
+                ],
+                "summary": "Search a post",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Query",
+                        "name": "q",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Post updated successfully",
+                        "schema": {
+                            "$ref": "#/definitions/entity.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/post/{id}": {
             "delete": {
                 "security": [
@@ -462,6 +494,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "data": {},
+                "info": {},
                 "message": {
                     "type": "string"
                 },
