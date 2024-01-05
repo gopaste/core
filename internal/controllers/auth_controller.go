@@ -16,15 +16,15 @@ type AuthController struct {
 	Env          *config.Config
 }
 
-// @Summary	Create account
-// @Schemes
-// @Description	Create a new user account
-// @Tags			Auth
-// @Accept			json
-// @Produce		json
-// @Param			request	body		entity.User	true	"User"
-// @Success		200		{object}	entity.SignupResponse
-// @Router			/auth/signup [post]
+//	@Summary	Create account
+//	@Schemes
+//	@Description	Create a new user account
+//	@Tags			Auth
+//	@Accept			json
+//	@Produce		json
+//	@Param			request	body		entity.User	true	"User"
+//	@Success		200		{object}	entity.SignupResponse
+//	@Router			/auth/signup [post]
 func (lc *AuthController) Signup(c *gin.Context) {
 	var payload *entity.User
 
@@ -59,15 +59,15 @@ func (lc *AuthController) Signup(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
-// @Summary	Authenticate user
-// @Schemes
-// @Description	authenticates a user
-// @Tags			Auth
-// @Accept			json
-// @Produce		json
-// @Param			request	body		entity.SigninRequest	true	"User"
-// @Success		200		{object}	entity.SigninResponse
-// @Router			/auth/signin [post]
+//	@Summary	Authenticate user
+//	@Schemes
+//	@Description	authenticates a user
+//	@Tags			Auth
+//	@Accept			json
+//	@Produce		json
+//	@Param			request	body		entity.SigninRequest	true	"User"
+//	@Success		200		{object}	entity.SigninResponse
+//	@Router			/auth/signin [post]
 func (sc *AuthController) Signin(ctx *gin.Context) {
 	var payload entity.SigninRequest
 
@@ -115,18 +115,18 @@ func (sc *AuthController) Signin(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, signinResponse)
 }
 
-// @Summary		Submit a request to reset the user's password
-// @Description	Submit a request to reset the user's password by providing their email address.
-// @Tags			Auth
-// @Accept			json
-// @Produce		json
-// @Param			request	body		entity.ForgotPasswordRequest	true	"User's email"
-// @Success		200		{object}	entity.Response	"Email sent successfully"
-// @Failure		400		{object}	entity.Response	"Bad Request"
-// @Failure		401		{object}	entity.Response	"Unauthorized"
-// @Failure		404		{object}	entity.Response	"User not found"
-// @Failure		500		{object}	entity.Response	"Internal Server Error"
-// @Router			/auth/forgot-password [post]
+//	@Summary		Submit a request to reset the user's password
+//	@Description	Submit a request to reset the user's password by providing their email address.
+//	@Tags			Auth
+//	@Accept			json
+//	@Produce		json
+//	@Param			request	body		entity.ForgotPasswordRequest	true	"User's email"
+//	@Success		200		{object}	entity.Response					"Email sent successfully"
+//	@Failure		400		{object}	entity.Response					"Bad Request"
+//	@Failure		401		{object}	entity.Response					"Unauthorized"
+//	@Failure		404		{object}	entity.Response					"User not found"
+//	@Failure		500		{object}	entity.Response					"Internal Server Error"
+//	@Router			/auth/forgot-password [post]
 func (ac *AuthController) ForgotPassword(ctx *gin.Context) {
 	var payload entity.ForgotPasswordRequest
 
@@ -162,17 +162,17 @@ func (ac *AuthController) ForgotPassword(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, response)
 }
 
-// @Summary		Reset the user's password using a reset token
-// @Description	Reset the user's password by providing a valid reset token and the new password.
-// @Tags			Auth
-// @Accept			json
-// @Produce		json
-// @Param			request	body		entity.ResetPasswordRequest	true	"User's email"
-// @Success		200		{object}	entity.Response	"Password updated successfully"
-// @Failure		400		{object}	entity.Response	"Bad Request"
-// @Failure		401		{object}	entity.Response	"Unauthorized"
-// @Failure		500		{object}	entity.Response	"Internal Server Error"
-// @Router			/auth/reset-password/{resetToken} [put]
+//	@Summary		Reset the user's password using a reset token
+//	@Description	Reset the user's password by providing a valid reset token and the new password.
+//	@Tags			Auth
+//	@Accept			json
+//	@Produce		json
+//	@Param			request	body		entity.ResetPasswordRequest	true	"User's email"
+//	@Success		200		{object}	entity.Response				"Password updated successfully"
+//	@Failure		400		{object}	entity.Response				"Bad Request"
+//	@Failure		401		{object}	entity.Response				"Unauthorized"
+//	@Failure		500		{object}	entity.Response				"Internal Server Error"
+//	@Router			/auth/reset-password/{resetToken} [put]
 func (ac *AuthController) ResetPassword(ctx *gin.Context) {
 	var payload entity.ResetPasswordRequest
 	resetToken := ctx.Params.ByName("resetToken")
@@ -203,17 +203,17 @@ func (ac *AuthController) ResetPassword(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, response)
 }
 
-// @Summary	Refresh the user's access token
-// @Description	Refresh the user's access token by providing a valid refresh token.
-// @Tags			Auth
-// @Accept			json
-// @Produce		json
-// @Param        refresh   header      string  true  "refresh token"
-// @Success		200		{object}	entity.Response	"Refreshed successfully"
-// @Failure		400		{object}	entity.Response	"Bad Request"
-// @Failure		401		{object}	entity.Response	"Unauthorized"
-// @Failure		500		{object}	entity.Response	"Internal Server Error"
-// @Router			/auth/refresh-token [post]
+//	@Summary		Refresh the user's access token
+//	@Description	Refresh the user's access token by providing a valid refresh token.
+//	@Tags			Auth
+//	@Accept			json
+//	@Produce		json
+//	@Param			refresh	header		string			true	"refresh token"
+//	@Success		200		{object}	entity.Response	"Refreshed successfully"
+//	@Failure		400		{object}	entity.Response	"Bad Request"
+//	@Failure		401		{object}	entity.Response	"Unauthorized"
+//	@Failure		500		{object}	entity.Response	"Internal Server Error"
+//	@Router			/auth/refresh-token [post]
 func (ac *AuthController) RefreshToken(ctx *gin.Context) {
 	refreshToken := ctx.Request.Header.Get("refresh")
 	if refreshToken == "" {

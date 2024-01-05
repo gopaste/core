@@ -22,9 +22,9 @@ import (
 //	@description	This is a sample server celler server.
 //	@termsOfService	http://swagger.io/terms/
 
-// @securityDefinitions.apikey BearerAuth
-// @in header
-// @name Authorization
+//	@securityDefinitions.apikey	BearerAuth
+//	@in							header
+//	@name						Authorization
 
 //	@contact.name	API Support
 //	@contact.url	http://www.swagger.io/support
@@ -36,8 +36,8 @@ import (
 //	@host		localhost:8080
 //	@BasePath	/api/v1
 
-// @externalDocs.description	OpenAPI
-// @externalDocs.url			https://swagger.io/resources/open-api/
+//	@externalDocs.description	OpenAPI
+//	@externalDocs.url			https://swagger.io/resources/open-api/
 func main() {
 	cfg, err := config.NewConfig(".")
 	if err != nil {
