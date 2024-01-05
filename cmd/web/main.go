@@ -22,6 +22,10 @@ import (
 //	@description	This is a sample server celler server.
 //	@termsOfService	http://swagger.io/terms/
 
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
+
 //	@contact.name	API Support
 //	@contact.url	http://www.swagger.io/support
 //	@contact.email	support@swagger.io
@@ -31,8 +35,6 @@ import (
 
 //	@host		localhost:8080
 //	@BasePath	/api/v1
-
-//	@securityDefinitions.basic	BasicAuth
 
 // @externalDocs.description	OpenAPI
 // @externalDocs.url			https://swagger.io/resources/open-api/

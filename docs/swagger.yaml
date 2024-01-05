@@ -400,7 +400,38 @@ paths:
       summary: Search a post
       tags:
       - Post
+  /user:
+    get:
+      consumes:
+      - application/json
+      description: Get details of the authenticated user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User retrieved successfully
+          schema:
+            $ref: '#/definitions/entity.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/typesystem.Http'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/typesystem.Http'
+        "404":
+          description: User not found
+          schema:
+            $ref: '#/definitions/typesystem.Http'
+      security:
+      - BearerAuth: []
+      summary: Get authenticated user
+      tags:
+      - User
 securityDefinitions:
-  BasicAuth:
-    type: basic
+  BearerAuth:
+    in: header
+    name: Authorization
+    type: apiKey
 swagger: "2.0"
