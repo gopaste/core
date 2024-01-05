@@ -350,6 +350,48 @@ const docTemplate = `{
             }
         },
         "/post/{id}": {
+            "get": {
+                "description": "Get post by ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Post"
+                ],
+                "summary": "Get post by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Post ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Post retrieved successfully",
+                        "schema": {
+                            "$ref": "#/definitions/entity.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/typesystem.Http"
+                        }
+                    },
+                    "404": {
+                        "description": "Post not found",
+                        "schema": {
+                            "$ref": "#/definitions/typesystem.Http"
+                        }
+                    }
+                }
+            },
             "delete": {
                 "security": [
                     {
@@ -553,6 +595,20 @@ const docTemplate = `{
                 },
                 "password": {
                     "type": "string"
+                }
+            }
+        },
+        "typesystem.Http": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "metadata": {
+                    "type": "string"
+                },
+                "statusCode": {
+                    "type": "integer"
                 }
             }
         }

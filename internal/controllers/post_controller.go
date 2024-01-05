@@ -202,6 +202,17 @@ func (ps *PostController) SearchPost(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, response)
 }
 
+// @Summary     Get post by ID
+// @Schemes     http
+// @Description Get post by ID
+// @Tags        Post
+// @Accept      json
+// @Produce     json
+// @Param       id     path    string    true   "Post ID"
+// @Success     200   {object} entity.Response   "Post retrieved successfully"
+// @Failure     400   {object} typesystem.Http   "Bad Request"
+// @Failure     404   {object} typesystem.Http   "Post not found"
+// @Router      /post/{id}   [get]
 func (ps *PostController) GetPost(ctx *gin.Context) {
 	postID := ctx.Param("id")
 

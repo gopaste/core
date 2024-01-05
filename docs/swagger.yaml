@@ -82,6 +82,15 @@ definitions:
     - name
     - password
     type: object
+  typesystem.Http:
+    properties:
+      description:
+        type: string
+      metadata:
+        type: string
+      statusCode:
+        type: integer
+    type: object
 externalDocs:
   description: OpenAPI
   url: https://swagger.io/resources/open-api/
@@ -271,6 +280,34 @@ paths:
       security:
       - BearerAuth: []
       summary: Delete a post by ID
+      tags:
+      - Post
+    get:
+      consumes:
+      - application/json
+      description: Get post by ID
+      parameters:
+      - description: Post ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Post retrieved successfully
+          schema:
+            $ref: '#/definitions/entity.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/typesystem.Http'
+        "404":
+          description: Post not found
+          schema:
+            $ref: '#/definitions/typesystem.Http'
+      summary: Get post by ID
       tags:
       - Post
     patch:
