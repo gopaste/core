@@ -121,11 +121,11 @@ func (sc *AuthController) Signin(ctx *gin.Context) {
 // @Accept			json
 // @Produce		json
 // @Param			request	body		entity.ForgotPasswordRequest	true	"User's email"
-// @Success		200		{object}	entity.Response	"Email sent successfully"
-// @Failure		400		{object}	entity.Response	"Bad Request"
-// @Failure		401		{object}	entity.Response	"Unauthorized"
-// @Failure		404		{object}	entity.Response	"User not found"
-// @Failure		500		{object}	entity.Response	"Internal Server Error"
+// @Success		200		{object}	entity.Response					"Email sent successfully"
+// @Failure		400		{object}	entity.Response					"Bad Request"
+// @Failure		401		{object}	entity.Response					"Unauthorized"
+// @Failure		404		{object}	entity.Response					"User not found"
+// @Failure		500		{object}	entity.Response					"Internal Server Error"
 // @Router			/auth/forgot-password [post]
 func (ac *AuthController) ForgotPassword(ctx *gin.Context) {
 	var payload entity.ForgotPasswordRequest
@@ -168,10 +168,10 @@ func (ac *AuthController) ForgotPassword(ctx *gin.Context) {
 // @Accept			json
 // @Produce		json
 // @Param			request	body		entity.ResetPasswordRequest	true	"User's email"
-// @Success		200		{object}	entity.Response	"Password updated successfully"
-// @Failure		400		{object}	entity.Response	"Bad Request"
-// @Failure		401		{object}	entity.Response	"Unauthorized"
-// @Failure		500		{object}	entity.Response	"Internal Server Error"
+// @Success		200		{object}	entity.Response				"Password updated successfully"
+// @Failure		400		{object}	entity.Response				"Bad Request"
+// @Failure		401		{object}	entity.Response				"Unauthorized"
+// @Failure		500		{object}	entity.Response				"Internal Server Error"
 // @Router			/auth/reset-password/{resetToken} [put]
 func (ac *AuthController) ResetPassword(ctx *gin.Context) {
 	var payload entity.ResetPasswordRequest
@@ -203,12 +203,12 @@ func (ac *AuthController) ResetPassword(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, response)
 }
 
-// @Summary	Refresh the user's access token
+// @Summary		Refresh the user's access token
 // @Description	Refresh the user's access token by providing a valid refresh token.
 // @Tags			Auth
 // @Accept			json
 // @Produce		json
-// @Param        refresh   header      string  true  "refresh token"
+// @Param			refresh	header		string			true	"refresh token"
 // @Success		200		{object}	entity.Response	"Refreshed successfully"
 // @Failure		400		{object}	entity.Response	"Bad Request"
 // @Failure		401		{object}	entity.Response	"Unauthorized"

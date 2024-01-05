@@ -16,7 +16,7 @@ type PostController struct {
 	Env         *config.Config
 }
 
-// @Summary	Create a post
+// @Summary				Create a post
 // @Schemes
 // @Description	create a post on the platform
 // @Tags			Post
@@ -51,14 +51,14 @@ func (ps *PostController) Post(ctx *gin.Context) {
 	ctx.JSON(http.StatusCreated, response)
 }
 
-// @Summary	Get all posts of the logged-in user
+// @Summary		Get all posts of the logged-in user
 // @Schemes		http
 // @Description	Get all posts of the logged-in user on the platform
 // @Tags			Post
 // @Accept			json
 // @Produce		json
 // @Security		BearerAuth
-// @Success		200		{object}	[]entity.Response
+// @Success		200	{object}	[]entity.Response
 // @Router			/post/all [get]
 func (ps *PostController) GetPosts(ctx *gin.Context) {
 	userID := ctx.GetString("x-user-id")
@@ -86,15 +86,15 @@ func (ps *PostController) GetPosts(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, response)
 }
 
-// @Summary	Delete a post by ID
+// @Summary		Delete a post by ID
 // @Schemes		http
 // @Description	Delete a post belonging to the logged-in user on the platform
 // @Tags			Post
 // @Accept			json
 // @Produce		json
 // @Security		BearerAuth
-// @Param			id	path	string	true	"Post ID"
-// @Success		200		{object}	entity.Response	"Post deleted successfully"
+// @Param			id	path		string			true	"Post ID"
+// @Success		200	{object}	entity.Response	"Post deleted successfully"
 // @Router			/post/{id} [delete]
 func (ps *PostController) DeletePost(ctx *gin.Context) {
 	userID := ctx.GetString("x-user-id")
@@ -124,16 +124,16 @@ func (ps *PostController) DeletePost(ctx *gin.Context) {
 	})
 }
 
-// @Summary	Update a post by ID
+// @Summary		Update a post by ID
 // @Schemes		http
 // @Description	Update a post belonging to the logged-in user on the platform
 // @Tags			Post
 // @Accept			json
 // @Produce		json
 // @Security		BearerAuth
-// @Param			id	path	string	true	"Post ID"
+// @Param			id		path		string					true	"Post ID"
 // @Param			request	body		entity.PostUpdateInput	true	"Post"
-// @Success		200		{object}	entity.Response	"Post updated successfully"
+// @Success		200		{object}	entity.Response			"Post updated successfully"
 // @Router			/post/{id} [patch]
 func (ps *PostController) UpdatePost(ctx *gin.Context) {
 	var payload entity.PostUpdateInput
@@ -173,15 +173,15 @@ func (ps *PostController) UpdatePost(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, response)
 }
 
-// @Summary     Search a post
-// @Schemes     http
-// @Description Search a post on the platform
-// @Tags        Post
-// @Accept      json
-// @Produce     json
-// @Param       q     query    string    true   "Query"
-// @Success     200   {object} entity.Response   "Post updated successfully"
-// @Router      /post/search   [get]
+// @Summary		Search a post
+// @Schemes		http
+// @Description	Search a post on the platform
+// @Tags			Post
+// @Accept			json
+// @Produce		json
+// @Param			q	query		string			true	"Query"
+// @Success		200	{object}	entity.Response	"Post updated successfully"
+// @Router			/post/search   [get]
 func (ps *PostController) SearchPost(ctx *gin.Context) {
 	query := ctx.Query("q")
 	page := ctx.Query("page")
@@ -202,17 +202,17 @@ func (ps *PostController) SearchPost(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, response)
 }
 
-// @Summary     Get post by ID
-// @Schemes     http
-// @Description Get post by ID
-// @Tags        Post
-// @Accept      json
-// @Produce     json
-// @Param       id     path    string    true   "Post ID"
-// @Success     200   {object} entity.Response   "Post retrieved successfully"
-// @Failure     400   {object} typesystem.Http   "Bad Request"
-// @Failure     404   {object} typesystem.Http   "Post not found"
-// @Router      /post/{id}   [get]
+// @Summary		Get post by ID
+// @Schemes		http
+// @Description	Get post by ID
+// @Tags			Post
+// @Accept			json
+// @Produce		json
+// @Param			id	path		string			true	"Post ID"
+// @Success		200	{object}	entity.Response	"Post retrieved successfully"
+// @Failure		400	{object}	typesystem.Http	"Bad Request"
+// @Failure		404	{object}	typesystem.Http	"Post not found"
+// @Router			/post/{id}   [get]
 func (ps *PostController) GetPost(ctx *gin.Context) {
 	postID := ctx.Param("id")
 

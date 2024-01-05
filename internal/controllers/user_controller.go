@@ -13,18 +13,18 @@ type UserController struct {
 	Env         *config.Config
 }
 
-// @Summary     Get authenticated user
-// @Schemes     http
-// @Description Get details of the authenticated user
-// @Tags        User
-// @Accept      json
-// @Produce     json
-// @Security BearerAuth
-// @Success     200   {object} entity.Response   "User retrieved successfully"
-// @Failure     400   {object} typesystem.Http   "Bad Request"
-// @Failure     401   {object} typesystem.Http   "Unauthorized"
-// @Failure     404   {object} typesystem.Http   "User not found"
-// @Router      /user [get]
+// @Summary		Get authenticated user
+// @Schemes		http
+// @Description	Get details of the authenticated user
+// @Tags			User
+// @Accept			json
+// @Produce		json
+// @Security		BearerAuth
+// @Success		200	{object}	entity.Response	"User retrieved successfully"
+// @Failure		400	{object}	typesystem.Http	"Bad Request"
+// @Failure		401	{object}	typesystem.Http	"Unauthorized"
+// @Failure		404	{object}	typesystem.Http	"User not found"
+// @Router			/user [get]
 func (uc *UserController) GetAuthenticatedUser(ctx *gin.Context) {
 	userID := ctx.GetString("x-user-id")
 	if userID == "" {
