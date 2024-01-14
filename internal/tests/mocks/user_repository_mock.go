@@ -12,13 +12,18 @@ type UserRepository struct {
 	mock.Mock
 }
 
-func (m *UserRepository) Create(ctx context.Context, user *entity.User) error {
+func (m *UserRepository) Insert(ctx context.Context, user *entity.User) error {
 	args := m.Called(ctx, user)
 	return args.Error(0)
 }
 
-func (m *UserRepository) GetUserByEmail(ctx context.Context, email string) (*entity.User, error) {
+func (m *UserRepository) FindOneByEmail(ctx context.Context, email string) (*entity.User, error) {
 	args := m.Called(ctx, email)
+	return args.Get(0).(*entity.User), args.Error(1)
+}
+
+func (m *UserRepository) FindOneByID(ctx context.Context, id uuid.UUID) (*entity.User, error) {
+	args := m.Called(ctx, id)
 	return args.Get(0).(*entity.User), args.Error(1)
 }
 
