@@ -13,12 +13,23 @@ import (
 	"golang.org/x/net/context"
 )
 
+type PostRepository interface {
+	Insert(ctx context.Context, post *entity.Post) error
+	FindAll(ctx context.Context, id uuid.UUID, limit int, offset int) ([]*entity.Post, error)
+	Delete(ctx context.Context, id uuid.UUID) error
+	CountUserPosts(ctx context.Context, id uuid.UUID) (int, error)
+	CountPostsInSearch(ctx context.Context, query string) (int, error)
+	FindOneByID(ctx context.Context, id uuid.UUID) (*entity.Post, error)
+	Update(ctx context.Context, post *entity.PostUpdateInput) error
+	Search(ctx context.Context, query string, limit int, offset int) ([]*entity.Post, error)
+}
+
 type PostService struct {
-	postRepo   entity.PostRepository
+	postRepo   PostRepository
 	validation validation.Validator
 }
 
-func NewPostService(postRepo entity.PostRepository, validation validation.Validator) *PostService {
+func NewPostService(postRepo PostRepository, validation validation.Validator) *PostService {
 	return &PostService{postRepo: postRepo, validation: validation}
 }
 

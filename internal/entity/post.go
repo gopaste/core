@@ -1,7 +1,6 @@
 package entity
 
 import (
-	"context"
 	"time"
 
 	"github.com/google/uuid"
@@ -37,24 +36,4 @@ func NewPost(userID *string, title string, content string) *Post {
 		Title:   title,
 		Content: content,
 	}
-}
-
-type PostRepository interface {
-	Insert(ctx context.Context, post *Post) error
-	FindAll(ctx context.Context, id uuid.UUID, limit int, offset int) ([]*Post, error)
-	Delete(ctx context.Context, id uuid.UUID) error
-	CountUserPosts(ctx context.Context, id uuid.UUID) (int, error)
-	CountPostsInSearch(ctx context.Context, query string) (int, error)
-	FindOneByID(ctx context.Context, id uuid.UUID) (*Post, error)
-	Update(ctx context.Context, post *PostUpdateInput) error
-	Search(ctx context.Context, query string, limit int, offset int) ([]*Post, error)
-}
-
-type PostService interface {
-	Create(ctx context.Context, post *Post) error
-	GetPosts(ctx context.Context, id uuid.UUID, page string) ([]*Post, *PaginationInfo, error)
-	DeletePost(ctx context.Context, id uuid.UUID, userID uuid.UUID) error
-	UpdatePost(ctx context.Context, post *PostUpdateInput, userID uuid.UUID, id uuid.UUID) error
-	SearchPost(ctx context.Context, query string, page string) ([]*Post, *PaginationInfo, error)
-	GetPost(ctx context.Context, id uuid.UUID) (*Post, error)
 }

@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/Caixetadev/snippet/config"
@@ -11,8 +12,17 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+type PostService interface {
+	Create(ctx context.Context, post *entity.Post) error
+	GetPosts(ctx context.Context, id uuid.UUID, page string) ([]*entity.Post, *entity.PaginationInfo, error)
+	DeletePost(ctx context.Context, id uuid.UUID, userID uuid.UUID) error
+	UpdatePost(ctx context.Context, post *entity.PostUpdateInput, userID uuid.UUID, id uuid.UUID) error
+	SearchPost(ctx context.Context, query string, page string) ([]*entity.Post, *entity.PaginationInfo, error)
+	GetPost(ctx context.Context, id uuid.UUID) (*entity.Post, error)
+}
+
 type PostController struct {
-	PostService entity.PostService
+	PostService PostService
 	Env         *config.Config
 }
 

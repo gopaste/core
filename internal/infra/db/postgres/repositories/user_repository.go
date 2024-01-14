@@ -4,10 +4,13 @@ import (
 	"context"
 
 	"github.com/Caixetadev/snippet/internal/entity"
+	"github.com/Caixetadev/snippet/internal/services"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
+
+var _ services.UserRepository = (*userRepository)(nil)
 
 type userRepository struct {
 	db *pgxpool.Pool
@@ -17,7 +20,7 @@ func NewUserRepository(db *pgxpool.Pool) *userRepository {
 	return &userRepository{db: db}
 }
 
-func (ur *userRepository) Create(ctx context.Context, user *entity.User) error {
+func (ur *userRepository) Insert(ctx context.Context, user *entity.User) error {
 	_, err := ur.db.Exec(
 		ctx,
 		"INSERT INTO users (id, name, email, password) VALUES ($1, $2, $3, $4)",
@@ -30,7 +33,7 @@ func (ur *userRepository) Create(ctx context.Context, user *entity.User) error {
 }
 
 // GetUserByEmail make a query in database and return an user or error
-func (ur *userRepository) GetUserByEmail(ctx context.Context, email string) (*entity.User, error) {
+func (ur *userRepository) FindOneByEmail(ctx context.Context, email string) (*entity.User, error) {
 	line, err := ur.db.Query(ctx, "SELECT id, name, email, password FROM users WHERE email = $1", email)
 	if err != nil {
 		return nil, err
@@ -51,7 +54,7 @@ func (ur *userRepository) GetUserByEmail(ctx context.Context, email string) (*en
 	return &user, nil
 }
 
-func (ur *userRepository) GetByID(ctx context.Context, id uuid.UUID) (*entity.User, error) {
+func (ur *userRepository) FindOneByID(ctx context.Context, id uuid.UUID) (*entity.User, error) {
 	line, err := ur.db.Query(ctx, "SELECT id, name, email FROM users WHERE id = $1", id)
 	if err != nil {
 		return nil, err

@@ -14,15 +14,28 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+type UserRepository interface {
+	Insert(ctx context.Context, user *entity.User) error
+	FindOneByEmail(ctx context.Context, email string) (*entity.User, error)
+	FindOneByID(ctx context.Context, id uuid.UUID) (*entity.User, error)
+	UserExistsByEmail(ctx context.Context, email string) (bool, error)
+	StoreVerificationData(ctx context.Context, verificationData *entity.VerificationData) error
+	UpdatePassword(ctx context.Context, password string, id uuid.UUID) error
+	VerifyCodeToResetPassword(ctx context.Context, code string) (entity.VerificationData, error)
+	GetSession(ctx context.Context, id uuid.UUID) (*entity.Session, error)
+	CreateSession(ctx context.Context, session *entity.Session) error
+	GetRefreshTokenByToken(ctx context.Context, token string) (*entity.RefreshToken, error)
+}
+
 type UserService struct {
-	userRepository entity.UserRepository
+	userRepository UserRepository
 	validation     validation.Validator
 	passwordHasher passwordhash.PasswordHasher
 	tokenMaker     token.Maker
 }
 
 func NewUserService(
-	userRepository entity.UserRepository,
+	userRepository UserRepository,
 	validation validation.Validator,
 	passwordHasher passwordhash.PasswordHasher,
 	tokenMaker token.Maker,
@@ -47,7 +60,7 @@ func (us *UserService) Create(ctx context.Context, input *entity.User) (*entity.
 
 	user := entity.NewUser(input.Name, input.Email, string(encryptedPassword))
 
-	err = us.userRepository.Create(ctx, user)
+	err = us.userRepository.Insert(ctx, user)
 	if err != nil {
 		return nil, typesystem.ServerError
 	}
@@ -56,7 +69,7 @@ func (us *UserService) Create(ctx context.Context, input *entity.User) (*entity.
 }
 
 func (us *UserService) GetUserByID(ctx context.Context, id uuid.UUID) (*entity.User, error) {
-	user, err := us.userRepository.GetByID(ctx, id)
+	user, err := us.userRepository.FindOneByID(ctx, id)
 	if err != nil {
 		if err == pgx.ErrNoRows {
 			return nil, typesystem.NotFound
@@ -68,7 +81,7 @@ func (us *UserService) GetUserByID(ctx context.Context, id uuid.UUID) (*entity.U
 }
 
 func (us *UserService) GetUserByEmail(ctx context.Context, email string) (*entity.User, error) {
-	user, err := us.userRepository.GetUserByEmail(ctx, email)
+	user, err := us.userRepository.FindOneByEmail(ctx, email)
 
 	if err != nil {
 		if err == pgx.ErrNoRows {

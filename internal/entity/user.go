@@ -25,19 +25,6 @@ func NewUser(name, email, password string) *User {
 	}
 }
 
-type UserRepository interface {
-	GetUserByEmail(ctx context.Context, email string) (*User, error)
-	Create(ctx context.Context, user *User) error
-	GetByID(ctx context.Context, id uuid.UUID) (*User, error)
-	UserExistsByEmail(ctx context.Context, email string) (bool, error)
-	StoreVerificationData(ctx context.Context, verificationData *VerificationData) error
-	UpdatePassword(ctx context.Context, password string, id uuid.UUID) error
-	VerifyCodeToResetPassword(ctx context.Context, code string) (VerificationData, error)
-	GetSession(ctx context.Context, id uuid.UUID) (*Session, error)
-	CreateSession(ctx context.Context, session *Session) error
-	GetRefreshTokenByToken(ctx context.Context, token string) (*RefreshToken, error)
-}
-
 type UserService interface {
 	GetUserByEmail(ctx context.Context, email string) (*User, error)
 	GetUserByID(ctx context.Context, id uuid.UUID) (*User, error)
