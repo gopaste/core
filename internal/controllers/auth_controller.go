@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"net/http"
-	"time"
 
 	"github.com/Caixetadev/snippet/config"
 	"github.com/Caixetadev/snippet/internal/entity"
@@ -245,11 +244,6 @@ func (ac *AuthController) RefreshToken(ctx *gin.Context) {
 
 	if session.RefreshToken != refreshToken {
 		ctx.Error(typesystem.Unauthorized)
-		return
-	}
-
-	if time.Now().After(session.ExpiresAt) {
-		ctx.Error(typesystem.TokenExpiredError)
 		return
 	}
 
