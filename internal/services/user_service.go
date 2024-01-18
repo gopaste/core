@@ -82,7 +82,6 @@ func (us *UserService) GetUserByID(ctx context.Context, id uuid.UUID) (*entity.U
 
 func (us *UserService) GetUserByEmail(ctx context.Context, email string) (*entity.User, error) {
 	user, err := us.userRepository.FindOneByEmail(ctx, email)
-
 	if err != nil {
 		if err == pgx.ErrNoRows {
 			return nil, typesystem.Unauthorized
@@ -107,7 +106,11 @@ func (us *UserService) CreateAccessToken(user *entity.User, expiry time.Duration
 	return token, payload, nil
 }
 
-func (us *UserService) CreateRefreshToken(ctx context.Context, user *entity.User, expiry time.Duration) (string, *entity.Payload, error) {
+func (us *UserService) CreateRefreshToken(
+	ctx context.Context,
+	user *entity.User,
+	expiry time.Duration,
+) (string, *entity.Payload, error) {
 	token, payload, err := us.tokenMaker.CreateToken(user, expiry)
 	if err != nil {
 		return "", nil, err
@@ -144,7 +147,6 @@ func (us *UserService) StoreVerificationData(ctx context.Context, userID uuid.UU
 
 func (us *UserService) VerifyCodeToResetPassword(ctx context.Context, code string) (uuid.UUID, error) {
 	verificationData, err := us.userRepository.VerifyCodeToResetPassword(ctx, code)
-
 	if err != nil {
 		return uuid.Nil, typesystem.ServerError
 	}
@@ -156,7 +158,12 @@ func (us *UserService) VerifyCodeToResetPassword(ctx context.Context, code strin
 	return verificationData.UserID, nil
 }
 
-func (us *UserService) UpdatePassword(ctx context.Context, password string, passwordConfirmation string, id uuid.UUID) error {
+func (us *UserService) UpdatePassword(
+	ctx context.Context,
+	password string,
+	passwordConfirmation string,
+	id uuid.UUID,
+) error {
 	if password != passwordConfirmation {
 		return typesystem.BadRequest
 	}
