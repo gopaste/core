@@ -20,7 +20,9 @@ func NewPostRepository(db *pgxpool.Pool) *postRepository {
 }
 
 func (pr *postRepository) Insert(ctx context.Context, post *entity.Post) error {
-	_, err := pr.db.Exec(ctx, "INSERT INTO posts (id, user_id, title, content) VALUES ($1, $2, $3, $4)", post.ID, post.UserID, post.Title, post.Content)
+	query := "INSERT INTO posts (id, user_id, title, content) VALUES ($1, $2, $3, $4)"
+
+	_, err := pr.db.Exec(ctx, query, post.ID, post.UserID, post.Title, post.Content)
 
 	return err
 }
@@ -33,6 +35,7 @@ func (pr *postRepository) FindAll(ctx context.Context, id uuid.UUID, limit int, 
 		ORDER BY created_at DESC
 		LIMIT $2 OFFSET $3;
 	`
+
 	line, err := pr.db.Query(ctx, query, id, limit, offset)
 	if err != nil {
 		return nil, err
@@ -57,7 +60,9 @@ func (pr *postRepository) FindAll(ctx context.Context, id uuid.UUID, limit int, 
 func (pr *postRepository) CountUserPosts(ctx context.Context, id uuid.UUID) (int, error) {
 	var count int
 
-	err := pr.db.QueryRow(ctx, "SELECT COUNT(*) FROM posts WHERE user_id = $1", id).Scan(&count)
+	query := "SELECT COUNT(*) FROM posts WHERE user_id = $1"
+
+	err := pr.db.QueryRow(ctx, query, id).Scan(&count)
 	if err != nil {
 		return 0, err
 	}
@@ -68,7 +73,10 @@ func (pr *postRepository) CountUserPosts(ctx context.Context, id uuid.UUID) (int
 func (pr *postRepository) CountPostsInSearch(ctx context.Context, query string) (int, error) {
 	var count int
 
-	err := pr.db.QueryRow(ctx, "SELECT COUNT(*) FROM posts WHERE title ILIKE '%' || $1 || '%' OR content ILIKE '%' || $1 || '%'", query).Scan(&count)
+	querySql := "SELECT COUNT(*) FROM posts WHERE title ILIKE '%' || $1 || '%' OR content ILIKE '%' || $1 || '%'"
+
+	err := pr.db.QueryRow(ctx, querySql, query).
+		Scan(&count)
 	if err != nil {
 		return 0, err
 	}
@@ -77,7 +85,9 @@ func (pr *postRepository) CountPostsInSearch(ctx context.Context, query string) 
 }
 
 func (pr *postRepository) FindOneByID(ctx context.Context, id uuid.UUID) (*entity.Post, error) {
-	line, err := pr.db.Query(ctx, "SELECT id, user_id, title, content, created_at FROM posts WHERE id = $1", id)
+	query := "SELECT id, user_id, title, content, created_at FROM posts WHERE id = $1"
+
+	line, err := pr.db.Query(ctx, query, id)
 	if err != nil {
 		return nil, err
 	}
@@ -98,7 +108,9 @@ func (pr *postRepository) FindOneByID(ctx context.Context, id uuid.UUID) (*entit
 }
 
 func (pr *postRepository) Delete(ctx context.Context, id uuid.UUID) error {
-	_, err := pr.db.Exec(ctx, "DELETE FROM posts WHERE id = $1", id)
+	query := "DELETE FROM posts WHERE id = $1"
+
+	_, err := pr.db.Exec(ctx, query, id)
 	if err != nil {
 		return err
 	}
@@ -136,12 +148,13 @@ func (pr *postRepository) Update(ctx context.Context, post *entity.PostUpdateInp
 
 func (pr *postRepository) Search(ctx context.Context, q string, limit int, offset int) ([]*entity.Post, error) {
 	query := `
-SELECT id, title, content, created_at
-FROM posts
-WHERE title ILIKE '%' || $1 || '%' OR content ILIKE '%' || $1 || '%'
-ORDER BY created_at DESC, id DESC
-LIMIT $2 OFFSET $3;
+		SELECT id, title, content, created_at
+		FROM posts
+		WHERE title ILIKE '%' || $1 || '%' OR content ILIKE '%' || $1 || '%'
+		ORDER BY created_at DESC, id DESC
+		LIMIT $2 OFFSET $3;
 	`
+
 	line, err := pr.db.Query(ctx, query, q, limit, offset)
 	if err != nil {
 		return nil, err

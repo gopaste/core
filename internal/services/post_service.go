@@ -35,7 +35,6 @@ func NewPostService(postRepo PostRepository, validation validation.Validator) *P
 
 func (ps *PostService) Create(ctx context.Context, input *entity.Post) error {
 	err := ps.validation.Validate(input)
-
 	if err != nil {
 		return typesystem.BadRequest
 	}
