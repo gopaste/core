@@ -21,20 +21,25 @@ func NewUserRepository(db *pgxpool.Pool) *userRepository {
 }
 
 func (ur *userRepository) Insert(ctx context.Context, user *entity.User) error {
+	query := "INSERT INTO users (id, name, email, password) VALUES ($1, $2, $3, $4)"
+
 	_, err := ur.db.Exec(
 		ctx,
-		"INSERT INTO users (id, name, email, password) VALUES ($1, $2, $3, $4)",
+		query,
 		user.ID,
 		user.Name,
 		user.Email,
 		user.Password,
 	)
+
 	return err
 }
 
 // GetUserByEmail make a query in database and return an user or error
 func (ur *userRepository) FindOneByEmail(ctx context.Context, email string) (*entity.User, error) {
-	line, err := ur.db.Query(ctx, "SELECT id, name, email, password FROM users WHERE email = $1", email)
+	query := "SELECT id, name, email, password FROM users WHERE email = $1"
+
+	line, err := ur.db.Query(ctx, query, email)
 	if err != nil {
 		return nil, err
 	}
@@ -55,7 +60,9 @@ func (ur *userRepository) FindOneByEmail(ctx context.Context, email string) (*en
 }
 
 func (ur *userRepository) FindOneByID(ctx context.Context, id uuid.UUID) (*entity.User, error) {
-	line, err := ur.db.Query(ctx, "SELECT id, name, email FROM users WHERE id = $1", id)
+	query := "SELECT id, name, email FROM users WHERE id = $1"
+
+	line, err := ur.db.Query(ctx, query, id)
 	if err != nil {
 		return nil, err
 	}
@@ -77,7 +84,10 @@ func (ur *userRepository) FindOneByID(ctx context.Context, id uuid.UUID) (*entit
 
 func (ur *userRepository) UserExistsByEmail(ctx context.Context, email string) (bool, error) {
 	var exists bool
-	err := ur.db.QueryRow(ctx, "SELECT EXISTS(SELECT 1 FROM users WHERE email = $1)", email).Scan(&exists)
+
+	query := "SELECT EXISTS(SELECT 1 FROM users WHERE email = $1)"
+
+	err := ur.db.QueryRow(ctx, query, email).Scan(&exists)
 	if err != nil {
 		return false, err
 	}
@@ -86,12 +96,28 @@ func (ur *userRepository) UserExistsByEmail(ctx context.Context, email string) (
 }
 
 func (ur *userRepository) StoreVerificationData(ctx context.Context, verificationData *entity.VerificationData) error {
-	_, err := ur.db.Exec(ctx, "INSERT INTO password_reset (id, user_id, reset_token, expiration_datetime) VALUES ($1, $2, $3, $4)", verificationData.ID, verificationData.UserID, verificationData.Code, verificationData.ExpiresAt)
+	query := "INSERT INTO password_reset (id, user_id, reset_token, expiration_datetime) VALUES ($1, $2, $3, $4)"
+
+	_, err := ur.db.Exec(
+		ctx,
+		query,
+		verificationData.ID,
+		verificationData.UserID,
+		verificationData.Code,
+		verificationData.ExpiresAt,
+	)
+
 	return err
 }
 
 func (ur *userRepository) VerifyCodeToResetPassword(ctx context.Context, code string) (entity.VerificationData, error) {
-	line, err := ur.db.Query(ctx, "SELECT id, user_id, expiration_datetime FROM password_reset WHERE reset_token = $1", code)
+	query := "SELECT id, user_id, expiration_datetime FROM password_reset WHERE reset_token = $1"
+
+	line, err := ur.db.Query(
+		ctx,
+		query,
+		code,
+	)
 	if err != nil {
 		return entity.VerificationData{}, err
 	}
@@ -111,22 +137,39 @@ func (ur *userRepository) VerifyCodeToResetPassword(ctx context.Context, code st
 }
 
 func (ur *userRepository) UpdatePassword(ctx context.Context, password string, id uuid.UUID) error {
-	_, err := ur.db.Exec(ctx, "UPDATE users SET password = $1 WHERE id = $2", password, id)
+	query := "UPDATE users SET password = $1 WHERE id = $2"
+
+	_, err := ur.db.Exec(ctx, query, password, id)
+
 	return err
 }
 
 func (ur *userRepository) CreateSession(ctx context.Context, session *entity.Session) error {
-	_, err := ur.db.Exec(ctx, "INSERT INTO sessions (id, name, refresh_token, user_agent, client_ip, is_blocked, expires_at) VALUES ($1, $2, $3, $4, $5, $6, $7)", session.ID, session.Name, session.RefreshToken, session.UserAgent, session.ClientIp, session.IsBlocked, session.ExpiresAt)
+	query := "INSERT INTO sessions (id, name, refresh_token, user_agent, client_ip, is_blocked, expires_at) VALUES ($1, $2, $3, $4, $5, $6, $7)"
+
+	_, err := ur.db.Exec(
+		ctx,
+		query,
+		session.ID,
+		session.Name,
+		session.RefreshToken,
+		session.UserAgent,
+		session.ClientIp,
+		session.IsBlocked,
+		session.ExpiresAt,
+	)
+
 	return err
 }
 
 func (ur *userRepository) GetRefreshTokenByToken(ctx context.Context, token string) (*entity.RefreshToken, error) {
+	query := "SELECT id, token, user_id, expiration_datetime FROM refresh_tokens WHERE token = $1"
+
 	line, err := ur.db.Query(
 		ctx,
-		"SELECT id, token, user_id, expiration_datetime FROM refresh_tokens WHERE token = $1",
+		query,
 		token,
 	)
-
 	if err != nil {
 		return nil, err
 	}
@@ -146,7 +189,13 @@ func (ur *userRepository) GetRefreshTokenByToken(ctx context.Context, token stri
 }
 
 func (ur *userRepository) GetSession(ctx context.Context, id uuid.UUID) (*entity.Session, error) {
-	line, err := ur.db.Query(ctx, "SELECT id, name, refresh_token, is_blocked, expires_at FROM sessions WHERE id = $1 LIMIT 1", id)
+	query := "SELECT id, name, refresh_token, is_blocked, expires_at FROM sessions WHERE id = $1 LIMIT 1"
+
+	line, err := ur.db.Query(
+		ctx,
+		query,
+		id,
+	)
 	if err != nil {
 		return nil, err
 	}
