@@ -13,12 +13,12 @@ import (
 )
 
 type PostService interface {
-	Create(ctx context.Context, post *entity.Post) error
-	GetPosts(ctx context.Context, id uuid.UUID, page string) ([]*entity.Post, *entity.PaginationInfo, error)
+	Create(ctx context.Context, post *entity.PostInput) error
+	GetPosts(ctx context.Context, id uuid.UUID, page string) ([]*entity.PostOutput, *entity.PaginationInfo, error)
 	DeletePost(ctx context.Context, id uuid.UUID, userID uuid.UUID) error
 	UpdatePost(ctx context.Context, post *entity.PostUpdateInput, userID uuid.UUID, id uuid.UUID) error
-	SearchPost(ctx context.Context, query string, page string) ([]*entity.Post, *entity.PaginationInfo, error)
-	GetPost(ctx context.Context, id uuid.UUID) (*entity.Post, error)
+	SearchPost(ctx context.Context, query string, page string) ([]*entity.PostOutput, *entity.PaginationInfo, error)
+	GetPost(ctx context.Context, id uuid.UUID, password string) (*entity.PostOutput, error)
 }
 
 type PostController struct {
@@ -36,7 +36,7 @@ type PostController struct {
 // @Success		200		{object}	entity.Response
 // @Router			/post/create [post]
 func (ps *PostController) Post(ctx *gin.Context) {
-	var payload entity.Post
+	var payload entity.PostInput
 	userID := ctx.GetString("x-user-id")
 
 	err := ctx.ShouldBindJSON(&payload)
@@ -224,6 +224,14 @@ func (ps *PostController) SearchPost(ctx *gin.Context) {
 // @Failure		404	{object}	typesystem.Http	"Post not found"
 // @Router			/post/{id}   [get]
 func (ps *PostController) GetPost(ctx *gin.Context) {
+	var payload entity.GetPostInput
+
+	err := ctx.ShouldBindJSON(&payload)
+	if err != nil {
+		ctx.Error(typesystem.BadRequest)
+		return
+	}
+
 	postID := ctx.Param("id")
 
 	id, err := uuid.Parse(postID)
@@ -232,7 +240,7 @@ func (ps *PostController) GetPost(ctx *gin.Context) {
 		return
 	}
 
-	post, err := ps.PostService.GetPost(ctx, id)
+	post, err := ps.PostService.GetPost(ctx, id, payload.Password)
 	if err != nil {
 		ctx.Error(err)
 		return

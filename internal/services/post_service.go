@@ -14,14 +14,14 @@ import (
 )
 
 type PostRepository interface {
-	Insert(ctx context.Context, post *entity.Post) error
-	FindAll(ctx context.Context, id uuid.UUID, limit int, offset int) ([]*entity.Post, error)
+	Insert(ctx context.Context, post *entity.PostInput) error
+	FindAll(ctx context.Context, id uuid.UUID, limit int, offset int) ([]*entity.PostOutput, error)
 	Delete(ctx context.Context, id uuid.UUID) error
 	CountUserPosts(ctx context.Context, id uuid.UUID) (int, error)
 	CountPostsInSearch(ctx context.Context, query string) (int, error)
-	FindOneByID(ctx context.Context, id uuid.UUID) (*entity.Post, error)
+	FindOneByID(ctx context.Context, id uuid.UUID) (*entity.PostOutput, error)
 	Update(ctx context.Context, post *entity.PostUpdateInput) error
-	Search(ctx context.Context, query string, limit int, offset int) ([]*entity.Post, error)
+	Search(ctx context.Context, query string, limit int, offset int) ([]*entity.PostOutput, error)
 }
 
 type PostService struct {
@@ -33,13 +33,13 @@ func NewPostService(postRepo PostRepository, validation validation.Validator) *P
 	return &PostService{postRepo: postRepo, validation: validation}
 }
 
-func (ps *PostService) Create(ctx context.Context, input *entity.Post) error {
+func (ps *PostService) Create(ctx context.Context, input *entity.PostInput) error {
 	err := ps.validation.Validate(input)
 	if err != nil {
 		return typesystem.BadRequest
 	}
 
-	post := entity.NewPost(input.UserID, input.Title, input.Content)
+	post := entity.NewPost(input.UserID, input.Title, input.Content, input.Password, input.IsPrivate)
 
 	if len(*post.UserID) == 0 {
 		post.UserID = nil
@@ -53,7 +53,7 @@ func (ps *PostService) Create(ctx context.Context, input *entity.Post) error {
 	return nil
 }
 
-func (ps *PostService) GetPosts(ctx context.Context, id uuid.UUID, pageStr string) ([]*entity.Post, *entity.PaginationInfo, error) {
+func (ps *PostService) GetPosts(ctx context.Context, id uuid.UUID, pageStr string) ([]*entity.PostOutput, *entity.PaginationInfo, error) {
 	count, err := ps.postRepo.CountUserPosts(ctx, id)
 	if err != nil {
 		return nil, nil, typesystem.ServerError
@@ -131,7 +131,7 @@ func (ps *PostService) UpdatePost(ctx context.Context, post *entity.PostUpdateIn
 	return nil
 }
 
-func (ps *PostService) SearchPost(ctx context.Context, query string, pageStr string) ([]*entity.Post, *entity.PaginationInfo, error) {
+func (ps *PostService) SearchPost(ctx context.Context, query string, pageStr string) ([]*entity.PostOutput, *entity.PaginationInfo, error) {
 	count, err := ps.postRepo.CountPostsInSearch(ctx, query)
 	if err != nil {
 		return nil, nil, typesystem.ServerError
@@ -165,13 +165,20 @@ func (ps *PostService) SearchPost(ctx context.Context, query string, pageStr str
 	return posts, paginationInfo, nil
 }
 
-func (ps *PostService) GetPost(ctx context.Context, id uuid.UUID) (*entity.Post, error) {
+func (ps *PostService) GetPost(ctx context.Context, id uuid.UUID, password string) (*entity.PostOutput, error) {
 	post, err := ps.postRepo.FindOneByID(ctx, id)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, typesystem.NotFound
 		}
 		return nil, typesystem.ServerError
+	}
+
+	if post.IsPrivate {
+		fmt.Println(post.Password, password)
+		if post.Password != password {
+			return nil, typesystem.Unauthorized
+		}
 	}
 
 	return post, nil

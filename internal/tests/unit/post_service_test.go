@@ -38,14 +38,14 @@ func (suite *PostServiceTestSuite) TestCreate() {
 
 	userID := "22c15b0d-5445-4c84-a52a-40888798d1d0"
 
-	input := &entity.Post{
+	input := &entity.PostInput{
 		UserID:  &userID,
 		Title:   "Title",
 		Content: "Body",
 	}
 
 	suite.validation.On("Validate", mock.Anything).Return(nil).Once()
-	suite.mocksRepo.On("Insert", ctx, mock.Anything).Return(nil).Once()
+	suite.mocksRepo.On("Insert", ctx, mock.AnythingOfType("*entity.PostInput")).Return(nil).Once()
 
 	err := suite.postService.Create(ctx, input)
 
@@ -60,7 +60,7 @@ func (suite *PostServiceTestSuite) TestCreate_UserAnonymous() {
 
 	userID := ""
 
-	input := &entity.Post{
+	input := &entity.PostInput{
 		UserID:  &userID,
 		Title:   "Title",
 		Content: "Body",
@@ -82,7 +82,7 @@ func (suite *PostServiceTestSuite) TestCreate_ValidationError() {
 
 	userID := "22c15b0d-5445-4c84-a52a-40888798d1d0"
 
-	input := &entity.Post{
+	input := &entity.PostInput{
 		UserID: &userID,
 	}
 
@@ -100,7 +100,7 @@ func (suite *PostServiceTestSuite) TestCreate_PostRepositoryError() {
 
 	userID := "22c15b0d-5445-4c84-a52a-40888798d1d0"
 
-	input := &entity.Post{
+	input := &entity.PostInput{
 		UserID:  &userID,
 		Title:   "Title",
 		Content: "Body",
@@ -124,7 +124,7 @@ func (suite *PostServiceTestSuite) TestGetPosts() {
 	userIDStr := userID.String()
 	page := "1"
 
-	output := []*entity.Post{
+	output := []*entity.PostOutput{
 		{
 			ID:      uuid.New(),
 			UserID:  &userIDStr,
@@ -150,7 +150,7 @@ func (suite *PostServiceTestSuite) TestGetPosts_PostRepositoryError() {
 	userID := uuid.New()
 	page := "1"
 
-	suite.mocksRepo.On("FindAll", ctx, mock.Anything).Return([]*entity.Post{}, errors.New("error")).Once()
+	suite.mocksRepo.On("FindAll", ctx, mock.Anything).Return([]*entity.PostOutput{}, errors.New("error")).Once()
 	suite.mocksRepo.On("CountUserPosts", ctx, userID).Return(10, nil).Once()
 	posts, _, err := suite.postService.GetPosts(ctx, userID, page)
 
@@ -167,7 +167,7 @@ func (suite *PostServiceTestSuite) TestDeletePost() {
 	userIDStr := userID.String()
 	postID := uuid.New()
 
-	output := &entity.Post{
+	output := &entity.PostOutput{
 		ID:      postID,
 		UserID:  &userIDStr,
 		Title:   "Title",
@@ -193,7 +193,7 @@ func (suite *PostServiceTestSuite) TestDeletePost_UserNonAuth() {
 	userIDStr := userID.String()
 	postID := uuid.New()
 
-	output := &entity.Post{
+	output := &entity.PostOutput{
 		ID:      postID,
 		UserID:  &userIDStr,
 		Title:   "Title",
@@ -215,7 +215,7 @@ func (suite *PostServiceTestSuite) TestDeletePost_PostNotFound() {
 	userID := uuid.New()
 	postID := uuid.New()
 
-	suite.mocksRepo.On("FindOneByID", ctx, postID).Return(&entity.Post{}, sql.ErrNoRows).Once()
+	suite.mocksRepo.On("FindOneByID", ctx, postID).Return(&entity.PostOutput{}, sql.ErrNoRows).Once()
 
 	err := suite.postService.DeletePost(ctx, postID, userID)
 
@@ -230,7 +230,7 @@ func (suite *PostServiceTestSuite) TestDeletePost_GetPostsRepositoryError() {
 	userID := uuid.New()
 	postID := uuid.New()
 
-	suite.mocksRepo.On("FindOneByID", ctx, postID).Return(&entity.Post{}, errors.New("error")).Once()
+	suite.mocksRepo.On("FindOneByID", ctx, postID).Return(&entity.PostOutput{}, errors.New("error")).Once()
 
 	err := suite.postService.DeletePost(ctx, postID, userID)
 
@@ -246,7 +246,7 @@ func (suite *PostServiceTestSuite) TestDeletePost_DeleteRepositoryError() {
 	userIDStr := userID.String()
 	postID := uuid.New()
 
-	output := &entity.Post{
+	output := &entity.PostOutput{
 		ID:      postID,
 		UserID:  &userIDStr,
 		Title:   "Title",
