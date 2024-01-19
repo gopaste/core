@@ -7,9 +7,12 @@ import (
 	"strings"
 
 	"github.com/Caixetadev/snippet/internal/entity"
+	"github.com/Caixetadev/snippet/internal/services"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
+
+var _ services.PostRepository = (*postRepository)(nil)
 
 type postRepository struct {
 	db *pgxpool.Pool
