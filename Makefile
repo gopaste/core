@@ -15,6 +15,11 @@ stop:
 	@echo "Stopping $(APP_NAME)..."
 	@docker-compose -f $(DOCKER_COMPOSE_FILE) down
 
+test:
+	@echo "Running test $(APP_NAME)..."
+	go test -coverprofile=coverage.out ./... -coverpkg=./... -v
+	go tool cover -html=coverage.out
+
 clean:
 	@echo "Cleaning up $(APP_NAME)..."
 	@docker-compose -f $(DOCKER_COMPOSE_FILE) down -v
