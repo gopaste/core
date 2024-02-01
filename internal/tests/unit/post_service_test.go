@@ -17,16 +17,17 @@ import (
 
 type PostServiceTestSuite struct {
 	suite.Suite
-	mocksRepo   *mocks.PostRepository
-	validation  *mocks.Validator
-	postService *services.PostService
+	mocksRepo           *mocks.PostRepository
+	validation          *mocks.Validator
+	postService         *services.PostService
+	mocksPasswordHasher *mocks.PasswordHasher
 }
 
 func (suite *PostServiceTestSuite) SetupTest() {
 	suite.mocksRepo = new(mocks.PostRepository)
 	suite.validation = new(mocks.Validator)
-
-	suite.postService = services.NewPostService(suite.mocksRepo, suite.validation)
+	suite.mocksPasswordHasher = new(mocks.PasswordHasher)
+	suite.postService = services.NewPostService(suite.mocksRepo, suite.validation, suite.mocksPasswordHasher)
 }
 
 func TestPostServiceTestSuite(t *testing.T) {
@@ -39,9 +40,10 @@ func (suite *PostServiceTestSuite) TestCreate() {
 	userID := "22c15b0d-5445-4c84-a52a-40888798d1d0"
 
 	input := &entity.PostInput{
-		UserID:  &userID,
-		Title:   "Title",
-		Content: "Body",
+		UserID:    &userID,
+		Title:     "Title",
+		Content:   "Body",
+		IsPrivate: false,
 	}
 
 	suite.validation.On("Validate", mock.Anything).Return(nil).Once()
@@ -53,6 +55,57 @@ func (suite *PostServiceTestSuite) TestCreate() {
 
 	suite.mocksRepo.AssertExpectations(suite.T())
 	suite.validation.AssertExpectations(suite.T())
+}
+
+func (suite *PostServiceTestSuite) TestCreatePrivate() {
+	ctx := context.TODO()
+
+	userID := "22c15b0d-5445-4c84-a52a-40888798d1d0"
+
+	input := &entity.PostInput{
+		UserID:    &userID,
+		Title:     "Title",
+		Content:   "Body",
+		Password:  "123",
+		IsPrivate: true,
+	}
+
+	suite.validation.On("Validate", mock.Anything).Return(nil).Once()
+	suite.mocksRepo.On("Insert", ctx, mock.AnythingOfType("*entity.PostInput")).Return(nil).Once()
+	suite.mocksPasswordHasher.On("GenerateFromPassword", []byte(input.Password), 10).Return([]byte("password_hashed"), nil)
+
+	err := suite.postService.Create(ctx, input)
+
+	suite.NoError(err)
+	suite.Equal("password_hashed", input.Password)
+
+	suite.mocksRepo.AssertExpectations(suite.T())
+	suite.validation.AssertExpectations(suite.T())
+	suite.mocksPasswordHasher.AssertExpectations(suite.T())
+}
+
+func (suite *PostServiceTestSuite) TestCreatePrivateError() {
+	ctx := context.TODO()
+
+	userID := "22c15b0d-5445-4c84-a52a-40888798d1d0"
+
+	input := &entity.PostInput{
+		UserID:    &userID,
+		Title:     "Title",
+		Content:   "Body",
+		Password:  "123",
+		IsPrivate: true,
+	}
+
+	suite.validation.On("Validate", mock.Anything).Return(nil).Once()
+	suite.mocksPasswordHasher.On("GenerateFromPassword", []byte(input.Password), 10).Return([]byte(""), errors.New("error"))
+
+	err := suite.postService.Create(ctx, input)
+
+	suite.Equal(err, typesystem.ServerError)
+
+	suite.validation.AssertExpectations(suite.T())
+	suite.mocksPasswordHasher.AssertExpectations(suite.T())
 }
 
 func (suite *PostServiceTestSuite) TestCreate_UserAnonymous() {

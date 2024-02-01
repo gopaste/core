@@ -7,6 +7,7 @@ import (
 
 	"github.com/Caixetadev/snippet/internal/entity"
 	"github.com/Caixetadev/snippet/internal/utils"
+	"github.com/Caixetadev/snippet/pkg/passwordhash"
 	"github.com/Caixetadev/snippet/pkg/typesystem"
 	"github.com/Caixetadev/snippet/pkg/validation"
 	"github.com/google/uuid"
@@ -25,18 +26,34 @@ type PostRepository interface {
 }
 
 type PostService struct {
-	postRepo   PostRepository
-	validation validation.Validator
+	postRepo       PostRepository
+	validation     validation.Validator
+	passwordHasher passwordhash.PasswordHasher
 }
 
-func NewPostService(postRepo PostRepository, validation validation.Validator) *PostService {
-	return &PostService{postRepo: postRepo, validation: validation}
+func NewPostService(
+	postRepo PostRepository,
+	validation validation.Validator,
+	passwordHasher passwordhash.PasswordHasher,
+) *PostService {
+	return &PostService{postRepo: postRepo, validation: validation, passwordHasher: passwordHasher}
 }
 
 func (ps *PostService) Create(ctx context.Context, input *entity.PostInput) error {
 	err := ps.validation.Validate(input)
 	if err != nil {
 		return typesystem.BadRequest
+	}
+
+	if input.IsPrivate {
+		encryptedPassword, err := ps.passwordHasher.GenerateFromPassword([]byte(input.Password), 10)
+		if err != nil {
+			return typesystem.ServerError
+		}
+
+		input.Password = string(encryptedPassword)
+	} else {
+		input.Password = ""
 	}
 
 	post := entity.NewPost(input.UserID, input.Title, input.Content, input.Password, input.IsPrivate)
@@ -53,7 +70,11 @@ func (ps *PostService) Create(ctx context.Context, input *entity.PostInput) erro
 	return nil
 }
 
-func (ps *PostService) GetPosts(ctx context.Context, id uuid.UUID, pageStr string) ([]*entity.PostOutput, *entity.PaginationInfo, error) {
+func (ps *PostService) GetPosts(
+	ctx context.Context,
+	id uuid.UUID,
+	pageStr string,
+) ([]*entity.PostOutput, *entity.PaginationInfo, error) {
 	count, err := ps.postRepo.CountUserPosts(ctx, id)
 	if err != nil {
 		return nil, nil, typesystem.ServerError
@@ -108,7 +129,12 @@ func (ps *PostService) DeletePost(ctx context.Context, id uuid.UUID, userID uuid
 	return nil
 }
 
-func (ps *PostService) UpdatePost(ctx context.Context, post *entity.PostUpdateInput, userID uuid.UUID, id uuid.UUID) error {
+func (ps *PostService) UpdatePost(
+	ctx context.Context,
+	post *entity.PostUpdateInput,
+	userID uuid.UUID,
+	id uuid.UUID,
+) error {
 	postInDatabase, err := ps.postRepo.FindOneByID(ctx, id)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -131,7 +157,11 @@ func (ps *PostService) UpdatePost(ctx context.Context, post *entity.PostUpdateIn
 	return nil
 }
 
-func (ps *PostService) SearchPost(ctx context.Context, query string, pageStr string) ([]*entity.PostOutput, *entity.PaginationInfo, error) {
+func (ps *PostService) SearchPost(
+	ctx context.Context,
+	query string,
+	pageStr string,
+) ([]*entity.PostOutput, *entity.PaginationInfo, error) {
 	count, err := ps.postRepo.CountPostsInSearch(ctx, query)
 	if err != nil {
 		return nil, nil, typesystem.ServerError
@@ -175,8 +205,8 @@ func (ps *PostService) GetPost(ctx context.Context, id uuid.UUID, password strin
 	}
 
 	if post.IsPrivate {
-		fmt.Println(post.Password, password)
-		if post.Password != password {
+		err := ps.passwordHasher.CompareHashAndPassword([]byte(post.Password), []byte(password))
+		if err != nil {
 			return nil, typesystem.Unauthorized
 		}
 	}

@@ -5,6 +5,7 @@ import (
 	"github.com/Caixetadev/snippet/internal/controllers"
 	repository "github.com/Caixetadev/snippet/internal/infra/db/postgres/repositories"
 	"github.com/Caixetadev/snippet/internal/services"
+	"github.com/Caixetadev/snippet/pkg/passwordhash"
 	"github.com/Caixetadev/snippet/pkg/validation"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -13,7 +14,7 @@ import (
 func NewPostRouter(cfg *config.Config, db *pgxpool.Pool, group *gin.RouterGroup, validation validation.Validator) {
 	pr := repository.NewPostRepository(db)
 
-	postService := services.NewPostService(pr, validation)
+	postService := services.NewPostService(pr, validation, &passwordhash.BcryptPasswordHasher{})
 
 	pc := &controllers.PostController{
 		PostService: postService,
