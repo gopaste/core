@@ -5,5 +5,6 @@ CREATE TABLE IF NOT EXISTS sessions (
     user_agent VARCHAR(255),
     client_ip VARCHAR(15),
     is_blocked BOOLEAN,
+    is_revoked BOOLEAN DEFAULT FALSE,
     expires_at TIMESTAMP
 );

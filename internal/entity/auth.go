@@ -52,6 +52,7 @@ type Session struct {
 	UserAgent    string
 	ClientIp     string
 	IsBlocked    bool
+	IsRevoked    bool
 	ExpiresAt    time.Time
 }
 
