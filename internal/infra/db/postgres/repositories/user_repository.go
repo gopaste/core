@@ -189,7 +189,7 @@ func (ur *userRepository) GetRefreshTokenByToken(ctx context.Context, token stri
 }
 
 func (ur *userRepository) GetSession(ctx context.Context, id uuid.UUID) (*entity.Session, error) {
-	query := "SELECT id, name, refresh_token, is_blocked, expires_at FROM sessions WHERE id = $1 LIMIT 1"
+	query := "SELECT id, name, refresh_token, is_blocked, is_revoked, expires_at FROM sessions WHERE id = $1 LIMIT 1"
 
 	line, err := ur.db.Query(
 		ctx,
@@ -205,7 +205,7 @@ func (ur *userRepository) GetSession(ctx context.Context, id uuid.UUID) (*entity
 	var session entity.Session
 
 	if line.Next() {
-		if err = line.Scan(&session.ID, &session.Name, &session.RefreshToken, &session.IsBlocked, &session.ExpiresAt); err != nil {
+		if err = line.Scan(&session.ID, &session.Name, &session.RefreshToken, &session.IsBlocked, &session.IsRevoked, &session.ExpiresAt); err != nil {
 			return nil, err
 		}
 	} else {
@@ -213,4 +213,15 @@ func (ur *userRepository) GetSession(ctx context.Context, id uuid.UUID) (*entity
 	}
 
 	return &session, nil
+}
+
+func (ur *userRepository) RevokeRefreshToken(ctx context.Context, token string) error {
+	query := "UPDATE sessions SET is_revoked = $1 WHERE refresh_token = $2"
+
+	_, err := ur.db.Exec(ctx, query, true, token)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
