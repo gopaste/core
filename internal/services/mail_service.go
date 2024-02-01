@@ -1,8 +1,6 @@
 package services
 
 import (
-	"fmt"
-
 	"github.com/Caixetadev/snippet/config"
 	"github.com/Caixetadev/snippet/internal/entity"
 	"github.com/Caixetadev/snippet/pkg/typesystem"
@@ -22,7 +20,6 @@ func NewSimpleEmailService(cfg *config.Config) (*SimpleEmailService, error) {
 		Region:      aws.String(cfg.AWSRegion),
 		Credentials: credentials.NewStaticCredentials(cfg.AWSSecretKey, cfg.AWSAccessKey, ""),
 	})
-
 	if err != nil {
 		return nil, err
 	}
@@ -42,7 +39,6 @@ func (e *SimpleEmailService) SendResetPasswordEmail(user *entity.User) (string, 
 
 	_, err := e.sesClient.SendEmail(input)
 	if err != nil {
-		fmt.Println(err)
 		return "", typesystem.ServerError
 	}
 
