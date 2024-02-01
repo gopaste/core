@@ -1,4 +1,4 @@
-package controllers
+package handlers
 
 import (
 	"net/http"
@@ -9,7 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type AuthController struct {
+type AuthHandler struct {
 	UserService  entity.UserService
 	EmailService entity.EmailService
 	Env          *config.Config
@@ -24,7 +24,7 @@ type AuthController struct {
 // @Param			request	body		entity.User	true	"User"
 // @Success		200		{object}	entity.SignupResponse
 // @Router			/auth/signup [post]
-func (lc *AuthController) Signup(c *gin.Context) {
+func (lc *AuthHandler) Signup(c *gin.Context) {
 	var payload *entity.User
 
 	err := c.ShouldBindJSON(&payload)
@@ -67,7 +67,7 @@ func (lc *AuthController) Signup(c *gin.Context) {
 // @Param			request	body		entity.SigninRequest	true	"User"
 // @Success		200		{object}	entity.SigninResponse
 // @Router			/auth/signin [post]
-func (sc *AuthController) Signin(ctx *gin.Context) {
+func (sc *AuthHandler) Signin(ctx *gin.Context) {
 	var payload entity.SigninRequest
 
 	err := ctx.ShouldBindJSON(&payload)
@@ -126,7 +126,7 @@ func (sc *AuthController) Signin(ctx *gin.Context) {
 // @Failure		404		{object}	entity.Response					"User not found"
 // @Failure		500		{object}	entity.Response					"Internal Server Error"
 // @Router			/auth/forgot-password [post]
-func (ac *AuthController) ForgotPassword(ctx *gin.Context) {
+func (ac *AuthHandler) ForgotPassword(ctx *gin.Context) {
 	var payload entity.ForgotPasswordRequest
 
 	err := ctx.ShouldBindJSON(&payload)
@@ -172,7 +172,7 @@ func (ac *AuthController) ForgotPassword(ctx *gin.Context) {
 // @Failure		401		{object}	entity.Response				"Unauthorized"
 // @Failure		500		{object}	entity.Response				"Internal Server Error"
 // @Router			/auth/reset-password/{resetToken} [put]
-func (ac *AuthController) ResetPassword(ctx *gin.Context) {
+func (ac *AuthHandler) ResetPassword(ctx *gin.Context) {
 	var payload entity.ResetPasswordRequest
 	resetToken := ctx.Params.ByName("resetToken")
 
@@ -213,7 +213,7 @@ func (ac *AuthController) ResetPassword(ctx *gin.Context) {
 // @Failure		401		{object}	entity.Response	"Unauthorized"
 // @Failure		500		{object}	entity.Response	"Internal Server Error"
 // @Router			/auth/refresh-token [post]
-func (ac *AuthController) RefreshToken(ctx *gin.Context) {
+func (ac *AuthHandler) RefreshToken(ctx *gin.Context) {
 	refreshToken := ctx.Request.Header.Get("refresh")
 	if refreshToken == "" {
 		ctx.Error(typesystem.BadRequest)

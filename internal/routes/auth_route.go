@@ -2,7 +2,7 @@ package routes
 
 import (
 	"github.com/Caixetadev/snippet/config"
-	"github.com/Caixetadev/snippet/internal/controllers"
+	"github.com/Caixetadev/snippet/internal/handlers"
 	repository "github.com/Caixetadev/snippet/internal/infra/db/postgres/repositories"
 	"github.com/Caixetadev/snippet/internal/services"
 	"github.com/Caixetadev/snippet/internal/token"
@@ -21,7 +21,7 @@ func NewAuthRouter(cfg *config.Config, db *pgxpool.Pool, group *gin.RouterGroup,
 		panic(err)
 	}
 
-	ac := &controllers.AuthController{
+	ac := &handlers.AuthHandler{
 		UserService:  userService,
 		EmailService: emailService,
 		Env:          cfg,

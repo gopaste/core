@@ -2,7 +2,7 @@ package routes
 
 import (
 	"github.com/Caixetadev/snippet/config"
-	"github.com/Caixetadev/snippet/internal/controllers"
+	"github.com/Caixetadev/snippet/internal/handlers"
 	repository "github.com/Caixetadev/snippet/internal/infra/db/postgres/repositories"
 	"github.com/Caixetadev/snippet/internal/services"
 	"github.com/Caixetadev/snippet/internal/token"
@@ -17,7 +17,7 @@ func NewUserRouter(cfg *config.Config, db *pgxpool.Pool, group *gin.RouterGroup,
 
 	userService := services.NewUserService(ur, validation, &passwordhash.BcryptPasswordHasher{}, tokenMaker)
 
-	uc := &controllers.UserController{
+	uc := &handlers.UserHandler{
 		UserService: userService,
 		Env:         cfg,
 	}

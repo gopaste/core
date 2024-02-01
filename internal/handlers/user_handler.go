@@ -1,4 +1,4 @@
-package controllers
+package handlers
 
 import (
 	"github.com/Caixetadev/snippet/config"
@@ -8,7 +8,7 @@ import (
 	"github.com/google/uuid"
 )
 
-type UserController struct {
+type UserHandler struct {
 	UserService entity.UserService
 	Env         *config.Config
 }
@@ -25,7 +25,7 @@ type UserController struct {
 // @Failure		401	{object}	typesystem.Http	"Unauthorized"
 // @Failure		404	{object}	typesystem.Http	"User not found"
 // @Router			/user [get]
-func (uc *UserController) GetAuthenticatedUser(ctx *gin.Context) {
+func (uc *UserHandler) GetAuthenticatedUser(ctx *gin.Context) {
 	userID := ctx.GetString("x-user-id")
 	if userID == "" {
 		ctx.Error(typesystem.Unauthorized)
