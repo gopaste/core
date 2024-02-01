@@ -4,9 +4,12 @@ import (
 	"context"
 
 	"github.com/Caixetadev/snippet/internal/entity"
+	"github.com/Caixetadev/snippet/internal/services"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/mock"
 )
+
+var _ services.UserRepository = (*UserRepository)(nil)
 
 type UserRepository struct {
 	mock.Mock
@@ -60,4 +63,9 @@ func (m *UserRepository) GetRefreshTokenByToken(ctx context.Context, token strin
 func (m *UserRepository) GetSession(ctx context.Context, id uuid.UUID) (*entity.Session, error) {
 	args := m.Called(ctx, id)
 	return args.Get(0).(*entity.Session), args.Error(1)
+}
+
+func (m *UserRepository) RevokeRefreshToken(ctx context.Context, token string) error {
+	args := m.Called(ctx, token)
+	return args.Error(0)
 }
