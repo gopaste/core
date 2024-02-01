@@ -25,6 +25,7 @@ type UserRepository interface {
 	GetSession(ctx context.Context, id uuid.UUID) (*entity.Session, error)
 	CreateSession(ctx context.Context, session *entity.Session) error
 	GetRefreshTokenByToken(ctx context.Context, token string) (*entity.RefreshToken, error)
+	RevokeRefreshToken(ctx context.Context, token string) error
 }
 
 type UserService struct {
@@ -184,6 +185,9 @@ func (us *UserService) UpdatePassword(
 func (us *UserService) GetSession(ctx context.Context, id uuid.UUID) (*entity.Session, error) {
 	user, err := us.userRepository.GetSession(ctx, id)
 	if err != nil {
+		if err == pgx.ErrNoRows {
+			return nil, typesystem.NotFound
+		}
 		return nil, typesystem.ServerError
 	}
 
@@ -197,4 +201,8 @@ func (us *UserService) VerifyToken(ctx context.Context, token string) (*entity.P
 	}
 
 	return refreshToken, nil
+}
+
+func (us *UserService) RevokeRefreshToken(ctx context.Context, token string) error {
+	return us.userRepository.RevokeRefreshToken(ctx, token)
 }
