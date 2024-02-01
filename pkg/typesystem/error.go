@@ -18,6 +18,7 @@ var (
 	Unauthorized      = NewHttpError("Unauthorized", "Authentication failed or missing credentials", http.StatusUnauthorized)
 	TokenInvalidError = NewHttpError("Token invalid", "The provided token is not valid", http.StatusUnauthorized)
 	TokenExpiredError = NewHttpError("Token expired", "The provided token has expired", http.StatusUnauthorized)
+	TokenRevokedError = NewHttpError("Token revoked", "The provided token has revoked", http.StatusUnauthorized)
 )
 
 // Http defines the error struct for an HTTP error
