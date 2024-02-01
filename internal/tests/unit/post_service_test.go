@@ -84,6 +84,30 @@ func (suite *PostServiceTestSuite) TestCreatePrivate() {
 	suite.mocksPasswordHasher.AssertExpectations(suite.T())
 }
 
+func (suite *PostServiceTestSuite) TestCreatePrivateError() {
+	ctx := context.TODO()
+
+	userID := "22c15b0d-5445-4c84-a52a-40888798d1d0"
+
+	input := &entity.PostInput{
+		UserID:    &userID,
+		Title:     "Title",
+		Content:   "Body",
+		Password:  "123",
+		IsPrivate: true,
+	}
+
+	suite.validation.On("Validate", mock.Anything).Return(nil).Once()
+	suite.mocksPasswordHasher.On("GenerateFromPassword", []byte(input.Password), 10).Return([]byte(""), errors.New("error"))
+
+	err := suite.postService.Create(ctx, input)
+
+	suite.Equal(err, typesystem.ServerError)
+
+	suite.validation.AssertExpectations(suite.T())
+	suite.mocksPasswordHasher.AssertExpectations(suite.T())
+}
+
 func (suite *PostServiceTestSuite) TestCreate_UserAnonymous() {
 	ctx := context.TODO()
 
