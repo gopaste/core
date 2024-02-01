@@ -232,6 +232,11 @@ func (ac *AuthController) RefreshToken(ctx *gin.Context) {
 		return
 	}
 
+	if session.IsRevoked {
+		ctx.Error(typesystem.TokenRevokedError)
+		return
+	}
+
 	if session.IsBlocked {
 		ctx.Error(typesystem.Unauthorized)
 		return
@@ -258,10 +263,25 @@ func (ac *AuthController) RefreshToken(ctx *gin.Context) {
 		return
 	}
 
+	refreshToken, _, err = ac.UserService.CreateRefreshToken(ctx, user, ac.Env.RefreshTokenDuration)
+	if err != nil {
+		ctx.Error(err)
+		return
+	}
+
+	err = ac.UserService.RevokeRefreshToken(ctx, session.RefreshToken)
+	if err != nil {
+		ctx.Error(err)
+		return
+	}
+
 	response := entity.Response{
 		Status:  http.StatusOK,
 		Message: "Refreshed successfully",
-		Data:    accessToken,
+		Data: map[string]string{
+			"access_token":  accessToken,
+			"refresh_token": refreshToken,
+		},
 	}
 
 	ctx.JSON(http.StatusOK, response)
