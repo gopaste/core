@@ -151,7 +151,7 @@ func (pr *postRepository) Update(ctx context.Context, post *entity.PostUpdateInp
 
 func (pr *postRepository) Search(ctx context.Context, q string, limit int, offset int) ([]*entity.PostOutput, error) {
 	query := `
-		SELECT id, title, content, created_at
+		SELECT id, title, content, is_private, created_at
 		FROM posts
 		WHERE title ILIKE '%' || $1 || '%' OR content ILIKE '%' || $1 || '%'
 		ORDER BY created_at DESC, id DESC
@@ -169,7 +169,7 @@ func (pr *postRepository) Search(ctx context.Context, q string, limit int, offse
 
 	for line.Next() {
 		post := &entity.PostOutput{}
-		if err := line.Scan(&post.ID, &post.Title, &post.Content, &post.CreatedAt); err != nil {
+		if err := line.Scan(&post.ID, &post.Title, &post.Content, &post.IsPrivate, &post.CreatedAt); err != nil {
 			return nil, err
 		}
 

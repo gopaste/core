@@ -3,7 +3,9 @@ CREATE TABLE IF NOT EXISTS public.posts (
     user_id UUID REFERENCES public.users(id) ,
     title varchar(255) NOT NULL,
     content TEXT NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    password varchar(255),
+    is_private BOOLEAN DEFAULT FALSE
 );
 
 CREATE INDEX idx_posts_title ON public.posts(title);
