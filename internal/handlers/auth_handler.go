@@ -263,7 +263,13 @@ func (ac *AuthHandler) RefreshToken(ctx *gin.Context) {
 		return
 	}
 
-	refreshToken, _, err = ac.UserService.CreateRefreshToken(ctx, user, ac.Env.RefreshTokenDuration)
+	refreshToken, refreshPayload, err = ac.UserService.CreateRefreshToken(ctx, user, ac.Env.RefreshTokenDuration)
+	if err != nil {
+		ctx.Error(err)
+		return
+	}
+
+	err = ac.UserService.CreateSession(ctx, refreshPayload, refreshToken)
 	if err != nil {
 		ctx.Error(err)
 		return
