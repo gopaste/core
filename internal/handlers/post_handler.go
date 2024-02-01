@@ -1,4 +1,4 @@
-package controllers
+package handlers
 
 import (
 	"context"
@@ -21,7 +21,7 @@ type PostService interface {
 	GetPost(ctx context.Context, id uuid.UUID, password string) (*entity.PostOutput, error)
 }
 
-type PostController struct {
+type PostHandler struct {
 	PostService PostService
 	Env         *config.Config
 }
@@ -35,7 +35,7 @@ type PostController struct {
 // @Param			request	body		entity.Post	true	"Post"
 // @Success		200		{object}	entity.Response
 // @Router			/post/create [post]
-func (ps *PostController) Post(ctx *gin.Context) {
+func (ps *PostHandler) Post(ctx *gin.Context) {
 	var payload entity.PostInput
 	userID := ctx.GetString("x-user-id")
 
@@ -70,7 +70,7 @@ func (ps *PostController) Post(ctx *gin.Context) {
 // @Security		BearerAuth
 // @Success		200	{object}	[]entity.Response
 // @Router			/post/all [get]
-func (ps *PostController) GetPosts(ctx *gin.Context) {
+func (ps *PostHandler) GetPosts(ctx *gin.Context) {
 	userID := ctx.GetString("x-user-id")
 	pageStr := ctx.Query("page")
 
@@ -106,7 +106,7 @@ func (ps *PostController) GetPosts(ctx *gin.Context) {
 // @Param			id	path		string			true	"Post ID"
 // @Success		200	{object}	entity.Response	"Post deleted successfully"
 // @Router			/post/{id} [delete]
-func (ps *PostController) DeletePost(ctx *gin.Context) {
+func (ps *PostHandler) DeletePost(ctx *gin.Context) {
 	userID := ctx.GetString("x-user-id")
 	postID := ctx.Param("id")
 
@@ -145,7 +145,7 @@ func (ps *PostController) DeletePost(ctx *gin.Context) {
 // @Param			request	body		entity.PostUpdateInput	true	"Post"
 // @Success		200		{object}	entity.Response			"Post updated successfully"
 // @Router			/post/{id} [patch]
-func (ps *PostController) UpdatePost(ctx *gin.Context) {
+func (ps *PostHandler) UpdatePost(ctx *gin.Context) {
 	var payload entity.PostUpdateInput
 
 	err := ctx.ShouldBindJSON(&payload)
@@ -192,7 +192,7 @@ func (ps *PostController) UpdatePost(ctx *gin.Context) {
 // @Param			q	query		string			true	"Query"
 // @Success		200	{object}	entity.Response	"Post updated successfully"
 // @Router			/post/search   [get]
-func (ps *PostController) SearchPost(ctx *gin.Context) {
+func (ps *PostHandler) SearchPost(ctx *gin.Context) {
 	query := ctx.Query("q")
 	page := ctx.Query("page")
 
@@ -223,7 +223,7 @@ func (ps *PostController) SearchPost(ctx *gin.Context) {
 // @Failure		400	{object}	typesystem.Http	"Bad Request"
 // @Failure		404	{object}	typesystem.Http	"Post not found"
 // @Router			/post/{id}   [get]
-func (ps *PostController) GetPost(ctx *gin.Context) {
+func (ps *PostHandler) GetPost(ctx *gin.Context) {
 	var payload entity.GetPostInput
 
 	err := ctx.ShouldBindJSON(&payload)

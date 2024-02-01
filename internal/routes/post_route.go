@@ -2,7 +2,7 @@ package routes
 
 import (
 	"github.com/Caixetadev/snippet/config"
-	"github.com/Caixetadev/snippet/internal/controllers"
+	"github.com/Caixetadev/snippet/internal/handlers"
 	repository "github.com/Caixetadev/snippet/internal/infra/db/postgres/repositories"
 	"github.com/Caixetadev/snippet/internal/services"
 	"github.com/Caixetadev/snippet/pkg/passwordhash"
@@ -16,7 +16,7 @@ func NewPostRouter(cfg *config.Config, db *pgxpool.Pool, group *gin.RouterGroup,
 
 	postService := services.NewPostService(pr, validation, &passwordhash.BcryptPasswordHasher{})
 
-	pc := &controllers.PostController{
+	pc := &handlers.PostHandler{
 		PostService: postService,
 		Env:         cfg,
 	}
