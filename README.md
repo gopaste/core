@@ -1,3 +1,4 @@
 # Pastebin
 
-- [ ] invalidate refresh token when giving refresh token
+- [x] invalidate refresh token when giving refresh token
+- [ ] create email service
