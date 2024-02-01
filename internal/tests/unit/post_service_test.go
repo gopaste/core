@@ -17,16 +17,17 @@ import (
 
 type PostServiceTestSuite struct {
 	suite.Suite
-	mocksRepo   *mocks.PostRepository
-	validation  *mocks.Validator
-	postService *services.PostService
+	mocksRepo           *mocks.PostRepository
+	validation          *mocks.Validator
+	postService         *services.PostService
+	mocksPasswordHasher *mocks.PasswordHasher
 }
 
 func (suite *PostServiceTestSuite) SetupTest() {
 	suite.mocksRepo = new(mocks.PostRepository)
 	suite.validation = new(mocks.Validator)
-
-	suite.postService = services.NewPostService(suite.mocksRepo, suite.validation)
+	suite.mocksPasswordHasher = new(mocks.PasswordHasher)
+	suite.postService = services.NewPostService(suite.mocksRepo, suite.validation, suite.mocksPasswordHasher)
 }
 
 func TestPostServiceTestSuite(t *testing.T) {
