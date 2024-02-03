@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS public.posts (
     content TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     password varchar(255),
-    is_private BOOLEAN DEFAULT FALSE
+    has_password BOOLEAN DEFAULT FALSE
 );
 
 CREATE INDEX idx_posts_title ON public.posts(title);
