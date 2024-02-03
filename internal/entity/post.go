@@ -3,11 +3,11 @@ package entity
 import (
 	"time"
 
-	"github.com/google/uuid"
+	"github.com/Caixetadev/snippet/internal/utils"
 )
 
 type PostInput struct {
-	ID          uuid.UUID `json:"id"`
+	ID          string    `json:"id"`
 	UserID      *string   `json:"-"`
 	Title       string    `json:"title" validate:"required" binding:"required"`
 	Content     string    `json:"content,omitempty" validate:"required" binding:"required"`
@@ -17,7 +17,7 @@ type PostInput struct {
 }
 
 type PostOutput struct {
-	ID          uuid.UUID `json:"id"`
+	ID          string    `json:"id"`
 	UserID      *string   `json:"-"`
 	Title       string    `json:"title" validate:"required" binding:"required"`
 	Content     string    `json:"content,omitempty" validate:"required" binding:"required"`
@@ -27,9 +27,9 @@ type PostOutput struct {
 }
 
 type PostUpdateInput struct {
-	ID      uuid.UUID `json:"-"`
-	Title   string    `json:"title"`
-	Content string    `json:"content"`
+	ID      string `json:"-"`
+	Title   string `json:"title"`
+	Content string `json:"content"`
 }
 
 type GetPostInput struct {
@@ -44,10 +44,8 @@ type PaginationInfo struct {
 }
 
 func NewPost(userID *string, title string, content string, password string, hasPassword bool) *PostInput {
-	uuidGenerator := UUIDGeneratorImpl{}
-
 	return &PostInput{
-		ID:          uuidGenerator.Generate(),
+		ID:          utils.GenerateRandomString(8),
 		UserID:      userID,
 		Title:       title,
 		Content:     content,
