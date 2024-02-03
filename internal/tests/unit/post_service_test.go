@@ -9,6 +9,7 @@ import (
 	"github.com/Caixetadev/snippet/internal/entity"
 	"github.com/Caixetadev/snippet/internal/services"
 	"github.com/Caixetadev/snippet/internal/tests/mocks"
+	"github.com/Caixetadev/snippet/internal/utils"
 	"github.com/Caixetadev/snippet/pkg/typesystem"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/mock"
@@ -179,7 +180,7 @@ func (suite *PostServiceTestSuite) TestGetPosts() {
 
 	output := []*entity.PostOutput{
 		{
-			ID:      uuid.New(),
+			ID:      utils.GenerateRandomString(8),
 			UserID:  &userIDStr,
 			Title:   "Title",
 			Content: "Body",
@@ -218,10 +219,10 @@ func (suite *PostServiceTestSuite) TestDeletePost() {
 
 	userID := uuid.New()
 	userIDStr := userID.String()
-	postID := uuid.New()
+	postID := utils.GenerateRandomString(8)
 
 	output := &entity.PostOutput{
-		ID:      postID,
+		ID:      utils.GenerateRandomString(8),
 		UserID:  &userIDStr,
 		Title:   "Title",
 		Content: "Body",
@@ -244,10 +245,10 @@ func (suite *PostServiceTestSuite) TestDeletePost_UserNonAuth() {
 
 	userID := uuid.New()
 	userIDStr := userID.String()
-	postID := uuid.New()
+	postID := utils.GenerateRandomString(8)
 
 	output := &entity.PostOutput{
-		ID:      postID,
+		ID:      utils.GenerateRandomString(8),
 		UserID:  &userIDStr,
 		Title:   "Title",
 		Content: "Body",
@@ -266,7 +267,7 @@ func (suite *PostServiceTestSuite) TestDeletePost_PostNotFound() {
 	ctx := context.TODO()
 
 	userID := uuid.New()
-	postID := uuid.New()
+	postID := utils.GenerateRandomString(8)
 
 	suite.mocksRepo.On("FindOneByID", ctx, postID).Return(&entity.PostOutput{}, sql.ErrNoRows).Once()
 
@@ -281,7 +282,7 @@ func (suite *PostServiceTestSuite) TestDeletePost_GetPostsRepositoryError() {
 	ctx := context.TODO()
 
 	userID := uuid.New()
-	postID := uuid.New()
+	postID := utils.GenerateRandomString(8)
 
 	suite.mocksRepo.On("FindOneByID", ctx, postID).Return(&entity.PostOutput{}, errors.New("error")).Once()
 
@@ -297,10 +298,10 @@ func (suite *PostServiceTestSuite) TestDeletePost_DeleteRepositoryError() {
 
 	userID := uuid.New()
 	userIDStr := userID.String()
-	postID := uuid.New()
+	postID := utils.GenerateRandomString(8)
 
 	output := &entity.PostOutput{
-		ID:      postID,
+		ID:      utils.GenerateRandomString(8),
 		UserID:  &userIDStr,
 		Title:   "Title",
 		Content: "Body",

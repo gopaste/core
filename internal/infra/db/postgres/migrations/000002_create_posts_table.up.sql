@@ -1,5 +1,5 @@
 CREATE TABLE IF NOT EXISTS public.posts (
-    id UUID PRIMARY KEY NOT NULL,
+    id varchar(8) PRIMARY KEY NOT NULL,
     user_id UUID REFERENCES public.users(id) ,
     title varchar(255) NOT NULL,
     content TEXT NOT NULL,

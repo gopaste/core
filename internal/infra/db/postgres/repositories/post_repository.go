@@ -87,7 +87,7 @@ func (pr *postRepository) CountPostsInSearch(ctx context.Context, query string) 
 	return count, nil
 }
 
-func (pr *postRepository) FindOneByID(ctx context.Context, id uuid.UUID) (*entity.PostOutput, error) {
+func (pr *postRepository) FindOneByID(ctx context.Context, id string) (*entity.PostOutput, error) {
 	query := "SELECT id, user_id, title, content, created_at, password, has_password FROM posts WHERE id = $1"
 
 	line, err := pr.db.Query(ctx, query, id)
@@ -110,7 +110,7 @@ func (pr *postRepository) FindOneByID(ctx context.Context, id uuid.UUID) (*entit
 	return &post, nil
 }
 
-func (pr *postRepository) Delete(ctx context.Context, id uuid.UUID) error {
+func (pr *postRepository) Delete(ctx context.Context, id string) error {
 	query := "DELETE FROM posts WHERE id = $1"
 
 	_, err := pr.db.Exec(ctx, query, id)

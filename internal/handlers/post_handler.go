@@ -15,10 +15,10 @@ import (
 type PostService interface {
 	Create(ctx context.Context, post *entity.PostInput) error
 	GetPosts(ctx context.Context, id uuid.UUID, page string) ([]*entity.PostOutput, *entity.PaginationInfo, error)
-	DeletePost(ctx context.Context, id uuid.UUID, userID uuid.UUID) error
-	UpdatePost(ctx context.Context, post *entity.PostUpdateInput, userID uuid.UUID, id uuid.UUID) error
+	DeletePost(ctx context.Context, id string, userID uuid.UUID) error
+	UpdatePost(ctx context.Context, post *entity.PostUpdateInput, userID uuid.UUID, id string) error
 	SearchPost(ctx context.Context, query string, page string) ([]*entity.PostOutput, *entity.PaginationInfo, error)
-	GetPost(ctx context.Context, id uuid.UUID, password string) (*entity.PostOutput, error)
+	GetPost(ctx context.Context, id string, password string) (*entity.PostOutput, error)
 }
 
 type PostHandler struct {
@@ -116,13 +116,7 @@ func (ps *PostHandler) DeletePost(ctx *gin.Context) {
 		return
 	}
 
-	postid, err := uuid.Parse(postID)
-	if err != nil {
-		ctx.Error(typesystem.ServerError)
-		return
-	}
-
-	err = ps.PostService.DeletePost(ctx, postid, id)
+	err = ps.PostService.DeletePost(ctx, postID, id)
 	if err != nil {
 		ctx.Error(err)
 		return
@@ -163,13 +157,7 @@ func (ps *PostHandler) UpdatePost(ctx *gin.Context) {
 		return
 	}
 
-	postid, err := uuid.Parse(postID)
-	if err != nil {
-		ctx.Error(typesystem.ServerError)
-		return
-	}
-
-	err = ps.PostService.UpdatePost(ctx, &payload, id, postid)
+	err = ps.PostService.UpdatePost(ctx, &payload, id, postID)
 	if err != nil {
 		ctx.Error(err)
 		return
@@ -232,9 +220,8 @@ func (ps *PostHandler) GetPost(ctx *gin.Context) {
 		return
 	}
 
-	postID := ctx.Param("id")
+	id := ctx.Param("id")
 
-	id, err := uuid.Parse(postID)
 	if err != nil {
 		ctx.Error(typesystem.BadRequest)
 		return

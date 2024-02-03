@@ -17,10 +17,10 @@ import (
 type PostRepository interface {
 	Insert(ctx context.Context, post *entity.PostInput) error
 	FindAll(ctx context.Context, id uuid.UUID, limit int, offset int) ([]*entity.PostOutput, error)
-	Delete(ctx context.Context, id uuid.UUID) error
+	Delete(ctx context.Context, id string) error
 	CountUserPosts(ctx context.Context, id uuid.UUID) (int, error)
 	CountPostsInSearch(ctx context.Context, query string) (int, error)
-	FindOneByID(ctx context.Context, id uuid.UUID) (*entity.PostOutput, error)
+	FindOneByID(ctx context.Context, id string) (*entity.PostOutput, error)
 	Update(ctx context.Context, post *entity.PostUpdateInput) error
 	Search(ctx context.Context, query string, limit int, offset int) ([]*entity.PostOutput, error)
 }
@@ -108,7 +108,7 @@ func (ps *PostService) GetPosts(
 	return posts, paginationInfo, nil
 }
 
-func (ps *PostService) DeletePost(ctx context.Context, id uuid.UUID, userID uuid.UUID) error {
+func (ps *PostService) DeletePost(ctx context.Context, id string, userID uuid.UUID) error {
 	post, err := ps.postRepo.FindOneByID(ctx, id)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -133,7 +133,7 @@ func (ps *PostService) UpdatePost(
 	ctx context.Context,
 	post *entity.PostUpdateInput,
 	userID uuid.UUID,
-	id uuid.UUID,
+	id string,
 ) error {
 	postInDatabase, err := ps.postRepo.FindOneByID(ctx, id)
 	if err != nil {
@@ -195,7 +195,7 @@ func (ps *PostService) SearchPost(
 	return posts, paginationInfo, nil
 }
 
-func (ps *PostService) GetPost(ctx context.Context, id uuid.UUID, password string) (*entity.PostOutput, error) {
+func (ps *PostService) GetPost(ctx context.Context, id string, password string) (*entity.PostOutput, error) {
 	post, err := ps.postRepo.FindOneByID(ctx, id)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
