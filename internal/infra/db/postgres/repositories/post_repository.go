@@ -23,16 +23,16 @@ func NewPostRepository(db *pgxpool.Pool) *postRepository {
 }
 
 func (pr *postRepository) Insert(ctx context.Context, post *entity.PostInput) error {
-	query := "INSERT INTO posts (id, user_id, title, content, password, is_private) VALUES ($1, $2, $3, $4, $5, $6)"
+	query := "INSERT INTO posts (id, user_id, title, content, password, has_password) VALUES ($1, $2, $3, $4, $5, $6)"
 
-	_, err := pr.db.Exec(ctx, query, post.ID, post.UserID, post.Title, post.Content, post.Password, post.IsPrivate)
+	_, err := pr.db.Exec(ctx, query, post.ID, post.UserID, post.Title, post.Content, post.Password, post.HasPassword)
 
 	return err
 }
 
 func (pr *postRepository) FindAll(ctx context.Context, id uuid.UUID, limit int, offset int) ([]*entity.PostOutput, error) {
 	query := `
-		SELECT id, title, created_at, is_private
+		SELECT id, title, created_at, has_password
 		FROM posts
 		WHERE user_id = $1
 		ORDER BY created_at DESC
@@ -50,7 +50,7 @@ func (pr *postRepository) FindAll(ctx context.Context, id uuid.UUID, limit int, 
 
 	for line.Next() {
 		post := &entity.PostOutput{}
-		if err := line.Scan(&post.ID, &post.Title, &post.CreatedAt, &post.IsPrivate); err != nil {
+		if err := line.Scan(&post.ID, &post.Title, &post.CreatedAt, &post.HasPassword); err != nil {
 			return nil, err
 		}
 
@@ -88,7 +88,7 @@ func (pr *postRepository) CountPostsInSearch(ctx context.Context, query string) 
 }
 
 func (pr *postRepository) FindOneByID(ctx context.Context, id uuid.UUID) (*entity.PostOutput, error) {
-	query := "SELECT id, user_id, title, content, created_at, password, is_private FROM posts WHERE id = $1"
+	query := "SELECT id, user_id, title, content, created_at, password, has_password FROM posts WHERE id = $1"
 
 	line, err := pr.db.Query(ctx, query, id)
 	if err != nil {
@@ -100,7 +100,7 @@ func (pr *postRepository) FindOneByID(ctx context.Context, id uuid.UUID) (*entit
 	var post entity.PostOutput
 
 	if line.Next() {
-		if err := line.Scan(&post.ID, &post.UserID, &post.Title, &post.Content, &post.CreatedAt, &post.Password, &post.IsPrivate); err != nil {
+		if err := line.Scan(&post.ID, &post.UserID, &post.Title, &post.Content, &post.CreatedAt, &post.Password, &post.HasPassword); err != nil {
 			return nil, err
 		}
 	} else {
@@ -151,7 +151,7 @@ func (pr *postRepository) Update(ctx context.Context, post *entity.PostUpdateInp
 
 func (pr *postRepository) Search(ctx context.Context, q string, limit int, offset int) ([]*entity.PostOutput, error) {
 	query := `
-		SELECT id, title, content, is_private, created_at
+		SELECT id, title, content, has_password, created_at
 		FROM posts
 		WHERE title ILIKE '%' || $1 || '%' OR content ILIKE '%' || $1 || '%'
 		ORDER BY created_at DESC, id DESC
@@ -169,7 +169,7 @@ func (pr *postRepository) Search(ctx context.Context, q string, limit int, offse
 
 	for line.Next() {
 		post := &entity.PostOutput{}
-		if err := line.Scan(&post.ID, &post.Title, &post.Content, &post.IsPrivate, &post.CreatedAt); err != nil {
+		if err := line.Scan(&post.ID, &post.Title, &post.Content, &post.HasPassword, &post.CreatedAt); err != nil {
 			return nil, err
 		}
 

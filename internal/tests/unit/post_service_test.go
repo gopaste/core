@@ -40,10 +40,10 @@ func (suite *PostServiceTestSuite) TestCreate() {
 	userID := "22c15b0d-5445-4c84-a52a-40888798d1d0"
 
 	input := &entity.PostInput{
-		UserID:    &userID,
-		Title:     "Title",
-		Content:   "Body",
-		IsPrivate: false,
+		UserID:      &userID,
+		Title:       "Title",
+		Content:     "Body",
+		HasPassword: false,
 	}
 
 	suite.validation.On("Validate", mock.Anything).Return(nil).Once()
@@ -63,11 +63,11 @@ func (suite *PostServiceTestSuite) TestCreatePrivate() {
 	userID := "22c15b0d-5445-4c84-a52a-40888798d1d0"
 
 	input := &entity.PostInput{
-		UserID:    &userID,
-		Title:     "Title",
-		Content:   "Body",
-		Password:  "123",
-		IsPrivate: true,
+		UserID:      &userID,
+		Title:       "Title",
+		Content:     "Body",
+		Password:    "123",
+		HasPassword: true,
 	}
 
 	suite.validation.On("Validate", mock.Anything).Return(nil).Once()
@@ -90,11 +90,11 @@ func (suite *PostServiceTestSuite) TestCreatePrivateError() {
 	userID := "22c15b0d-5445-4c84-a52a-40888798d1d0"
 
 	input := &entity.PostInput{
-		UserID:    &userID,
-		Title:     "Title",
-		Content:   "Body",
-		Password:  "123",
-		IsPrivate: true,
+		UserID:      &userID,
+		Title:       "Title",
+		Content:     "Body",
+		Password:    "123",
+		HasPassword: true,
 	}
 
 	suite.validation.On("Validate", mock.Anything).Return(nil).Once()

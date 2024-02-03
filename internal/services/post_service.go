@@ -45,7 +45,7 @@ func (ps *PostService) Create(ctx context.Context, input *entity.PostInput) erro
 		return typesystem.BadRequest
 	}
 
-	if input.IsPrivate {
+	if input.HasPassword {
 		encryptedPassword, err := ps.passwordHasher.GenerateFromPassword([]byte(input.Password), 10)
 		if err != nil {
 			return typesystem.ServerError
@@ -56,7 +56,7 @@ func (ps *PostService) Create(ctx context.Context, input *entity.PostInput) erro
 		input.Password = ""
 	}
 
-	post := entity.NewPost(input.UserID, input.Title, input.Content, input.Password, input.IsPrivate)
+	post := entity.NewPost(input.UserID, input.Title, input.Content, input.Password, input.HasPassword)
 
 	if len(*post.UserID) == 0 {
 		post.UserID = nil
@@ -204,7 +204,7 @@ func (ps *PostService) GetPost(ctx context.Context, id uuid.UUID, password strin
 		return nil, typesystem.ServerError
 	}
 
-	if post.IsPrivate {
+	if post.HasPassword {
 		err := ps.passwordHasher.CompareHashAndPassword([]byte(post.Password), []byte(password))
 		if err != nil {
 			return nil, typesystem.Unauthorized

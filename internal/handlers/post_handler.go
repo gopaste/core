@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 
 	"github.com/Caixetadev/snippet/config"
@@ -39,8 +40,11 @@ func (ps *PostHandler) Post(ctx *gin.Context) {
 	var payload entity.PostInput
 	userID := ctx.GetString("x-user-id")
 
+	fmt.Println(payload)
 	err := ctx.ShouldBindJSON(&payload)
+	fmt.Println(payload)
 	if err != nil {
+		fmt.Println("AQUI AQUI ", err.Error())
 		ctx.Error(typesystem.BadRequest)
 		return
 	}
