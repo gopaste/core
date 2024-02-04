@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/Caixetadev/snippet/internal/entity"
 	"github.com/Caixetadev/snippet/internal/utils"
@@ -48,6 +49,10 @@ func (ps *PostService) Create(ctx context.Context, input *entity.PostInput) erro
 		return typesystem.BadRequest
 	}
 
+	if input.DeleteAfterView && !input.ExpirationAt.IsZero() {
+		return typesystem.NewHttpError("Cannot have both delete_after_view and expiration_at together", "[Error: delete_after_view_conflict]", http.StatusBadRequest)
+	}
+
 	if input.HasPassword {
 		if len(input.Password) < 3 {
 			return typesystem.NewHttpError("Password should have a minimum of 3 characters.", "[Error: password_length]", http.StatusBadRequest)
@@ -70,6 +75,8 @@ func (ps *PostService) Create(ctx context.Context, input *entity.PostInput) erro
 		input.Password,
 		input.HasPassword,
 		input.Visibility,
+		input.ExpirationAt,
+		input.DeleteAfterView,
 	)
 
 	if len(*post.UserID) == 0 {
@@ -78,6 +85,7 @@ func (ps *PostService) Create(ctx context.Context, input *entity.PostInput) erro
 
 	err = ps.postRepo.Insert(ctx, post)
 	if err != nil {
+		fmt.Println(err.Error())
 		return typesystem.ServerError
 	}
 
@@ -251,6 +259,16 @@ func (ps *PostService) GetPost(ctx context.Context, id string, userID string, pa
 			return nil, typesystem.NotFound
 		}
 		return nil, typesystem.ServerError
+	}
+
+	if !post.ExpirationAt.IsZero() && time.Now().After(post.ExpirationAt) {
+		go ps.postRepo.Delete(ctx, post.ID)
+
+		return nil, typesystem.NotFound
+	}
+
+	if post.DeleteAfterView {
+		defer ps.postRepo.Delete(ctx, post.ID)
 	}
 
 	if post.Visibility == "private" {

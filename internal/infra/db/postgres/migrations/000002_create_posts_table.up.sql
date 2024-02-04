@@ -10,9 +10,11 @@ CREATE TABLE IF NOT EXISTS public.posts (
     title varchar(255) NOT NULL,
     content TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    expiration_at TIMESTAMP,
     password varchar(255),
     has_password BOOLEAN DEFAULT FALSE,
-    visibility visibility_enum
+    visibility visibility_enum,
+    delete_after_view BOOLEAN DEFAULT FALSE
 );
 
 CREATE INDEX idx_posts_title ON public.posts(title);

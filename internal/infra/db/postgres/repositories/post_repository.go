@@ -23,14 +23,31 @@ func NewPostRepository(db *pgxpool.Pool) *postRepository {
 }
 
 func (pr *postRepository) Insert(ctx context.Context, post *entity.PostInput) error {
-	query := "INSERT INTO posts (id, user_id, title, content, password, has_password, visibility) VALUES ($1, $2, $3, $4, $5, $6, $7)"
+	query := "INSERT INTO posts (id, user_id, title, content, password, has_password, visibility, expiration_at, delete_after_view) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)"
 
-	_, err := pr.db.Exec(ctx, query, post.ID, post.UserID, post.Title, post.Content, post.Password, post.HasPassword, post.Visibility)
+	_, err := pr.db.Exec(
+		ctx,
+		query,
+		post.ID,
+		post.UserID,
+		post.Title,
+		post.Content,
+		post.Password,
+		post.HasPassword,
+		post.Visibility,
+		post.ExpirationAt,
+		post.DeleteAfterView,
+	)
 
 	return err
 }
 
-func (pr *postRepository) FindAll(ctx context.Context, id uuid.UUID, limit int, offset int) ([]*entity.PostOutput, error) {
+func (pr *postRepository) FindAll(
+	ctx context.Context,
+	id uuid.UUID,
+	limit int,
+	offset int,
+) ([]*entity.PostOutput, error) {
 	query := `
 		SELECT id, title, created_at, has_password, visibility
 		FROM posts
@@ -131,7 +148,7 @@ func (pr *postRepository) CountPostsInSearch(ctx context.Context, query string) 
 }
 
 func (pr *postRepository) FindOneByID(ctx context.Context, id string) (*entity.PostOutput, error) {
-	query := "SELECT id, user_id, title, content, created_at, password, has_password, visibility FROM posts WHERE id = $1"
+	query := "SELECT id, user_id, title, content, created_at, expiration_at, password, has_password, visibility, delete_after_view FROM posts WHERE id = $1"
 
 	line, err := pr.db.Query(ctx, query, id)
 	if err != nil {
@@ -143,7 +160,7 @@ func (pr *postRepository) FindOneByID(ctx context.Context, id string) (*entity.P
 	var post entity.PostOutput
 
 	if line.Next() {
-		if err := line.Scan(&post.ID, &post.UserID, &post.Title, &post.Content, &post.CreatedAt, &post.Password, &post.HasPassword, &post.Visibility); err != nil {
+		if err := line.Scan(&post.ID, &post.UserID, &post.Title, &post.Content, &post.CreatedAt, &post.ExpirationAt, &post.Password, &post.HasPassword, &post.Visibility, &post.DeleteAfterView); err != nil {
 			return nil, err
 		}
 	} else {
