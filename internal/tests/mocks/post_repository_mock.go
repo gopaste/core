@@ -22,6 +22,16 @@ func (ps *PostRepository) FindAll(ctx context.Context, id uuid.UUID, limit, offs
 	return args.Get(0).([]*entity.PostOutput), args.Error(1)
 }
 
+func (ps *PostRepository) FindAllPublics(ctx context.Context, limit, offset int) ([]*entity.PostOutput, error) {
+	args := ps.Called(ctx)
+	return args.Get(0).([]*entity.PostOutput), args.Error(1)
+}
+
+func (ps *PostRepository) CountAllPostsPublics(ctx context.Context) (int, error) {
+	args := ps.Called(ctx)
+	return args.Int(0), args.Error(1)
+}
+
 func (ps *PostRepository) FindOneByID(ctx context.Context, id string) (*entity.PostOutput, error) {
 	args := ps.Called(ctx, id)
 	return args.Get(0).(*entity.PostOutput), args.Error(1)
