@@ -149,8 +149,6 @@ func (ps *PostService) GetAllPublics(ctx context.Context, pageStr string) ([]*en
 		Count: count,
 	}
 
-	fmt.Println("AQUI AQUI AQUI", paginationInfo)
-
 	return posts, paginationInfo, nil
 }
 
