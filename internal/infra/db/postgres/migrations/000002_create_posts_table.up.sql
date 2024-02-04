@@ -1,11 +1,12 @@
 CREATE TABLE IF NOT EXISTS public.posts (
-    id UUID PRIMARY KEY NOT NULL,
+    id varchar(8) PRIMARY KEY NOT NULL,
     user_id UUID REFERENCES public.users(id) ,
     title varchar(255) NOT NULL,
     content TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     password varchar(255),
-    is_private BOOLEAN DEFAULT FALSE
+    has_password BOOLEAN DEFAULT FALSE,
+    visibility varchar(8)
 );
 
 CREATE INDEX idx_posts_title ON public.posts(title);
