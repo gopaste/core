@@ -6,24 +6,34 @@ import (
 	"github.com/Caixetadev/snippet/internal/utils"
 )
 
+type Visibility string
+
+const (
+	Private  Visibility = "private"
+	Public   Visibility = "public"
+	Unlisted Visibility = "unlisted"
+)
+
 type PostInput struct {
-	ID          string    `json:"id"`
-	UserID      *string   `json:"-"`
-	Title       string    `json:"title" validate:"required" binding:"required"`
-	Content     string    `json:"content,omitempty" validate:"required" binding:"required"`
-	CreatedAt   time.Time `json:"created_at"`
-	Password    string    `json:"password,omitempty"`
-	HasPassword bool      `json:"has_password"`
+	ID          string     `json:"id"`
+	UserID      *string    `json:"-"`
+	Title       string     `json:"title" validate:"required" binding:"required"`
+	Content     string     `json:"content,omitempty" validate:"required" binding:"required"`
+	CreatedAt   time.Time  `json:"created_at"`
+	Password    string     `json:"password,omitempty"`
+	HasPassword bool       `json:"has_password"`
+	Visibility  Visibility `json:"visibility" validate:"omitempty,oneof=private public unlisted"`
 }
 
 type PostOutput struct {
-	ID          string    `json:"id"`
-	UserID      *string   `json:"-"`
-	Title       string    `json:"title" validate:"required" binding:"required"`
-	Content     string    `json:"content,omitempty" validate:"required" binding:"required"`
-	CreatedAt   time.Time `json:"created_at"`
-	Password    string    `json:"-"`
-	HasPassword bool      `json:"has_password"`
+	ID          string     `json:"id"`
+	UserID      *string    `json:"user_id"`
+	Title       string     `json:"title" validate:"required" binding:"required"`
+	Content     string     `json:"content,omitempty" validate:"required" binding:"required"`
+	CreatedAt   time.Time  `json:"created_at"`
+	Password    string     `json:"-"`
+	HasPassword bool       `json:"has_password"`
+	Visibility  Visibility `json:"visibility,omitempty"`
 }
 
 type PostUpdateInput struct {
@@ -43,7 +53,7 @@ type PaginationInfo struct {
 	Count int     `json:"count"`
 }
 
-func NewPost(userID *string, title string, content string, password string, hasPassword bool) *PostInput {
+func NewPost(userID *string, title string, content string, password string, hasPassword bool, visibility Visibility) *PostInput {
 	return &PostInput{
 		ID:          utils.GenerateRandomString(8),
 		UserID:      userID,
@@ -51,5 +61,6 @@ func NewPost(userID *string, title string, content string, password string, hasP
 		Content:     content,
 		Password:    password,
 		HasPassword: hasPassword,
+		Visibility:  visibility,
 	}
 }

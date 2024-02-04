@@ -15,10 +15,11 @@ import (
 type PostService interface {
 	Create(ctx context.Context, post *entity.PostInput) error
 	GetPosts(ctx context.Context, id uuid.UUID, page string) ([]*entity.PostOutput, *entity.PaginationInfo, error)
+	GetAllPublics(ctx context.Context, page string) ([]*entity.PostOutput, *entity.PaginationInfo, error)
 	DeletePost(ctx context.Context, id string, userID uuid.UUID) error
 	UpdatePost(ctx context.Context, post *entity.PostUpdateInput, userID uuid.UUID, id string) error
 	SearchPost(ctx context.Context, query string, page string) ([]*entity.PostOutput, *entity.PaginationInfo, error)
-	GetPost(ctx context.Context, id string, password string) (*entity.PostOutput, error)
+	GetPost(ctx context.Context, id string, userID string, password string) (*entity.PostOutput, error)
 }
 
 type PostHandler struct {
@@ -81,6 +82,25 @@ func (ps *PostHandler) GetPosts(ctx *gin.Context) {
 	}
 
 	posts, paginationInfo, err := ps.PostService.GetPosts(ctx, id, pageStr)
+	if err != nil {
+		ctx.Error(err)
+		return
+	}
+
+	response := entity.Response{
+		Status:  http.StatusOK,
+		Message: "Posts retrieved successfully",
+		Info:    paginationInfo,
+		Data:    posts,
+	}
+
+	ctx.JSON(http.StatusOK, response)
+}
+
+func (ps *PostHandler) GetAllPublics(ctx *gin.Context) {
+	pageStr := ctx.Query("page")
+
+	posts, paginationInfo, err := ps.PostService.GetAllPublics(ctx, pageStr)
 	if err != nil {
 		ctx.Error(err)
 		return
@@ -220,6 +240,8 @@ func (ps *PostHandler) GetPost(ctx *gin.Context) {
 		return
 	}
 
+	userID := ctx.GetString("x-user-id")
+
 	id := ctx.Param("id")
 
 	if err != nil {
@@ -227,7 +249,7 @@ func (ps *PostHandler) GetPost(ctx *gin.Context) {
 		return
 	}
 
-	post, err := ps.PostService.GetPost(ctx, id, payload.Password)
+	post, err := ps.PostService.GetPost(ctx, id, userID, payload.Password)
 	if err != nil {
 		ctx.Error(err)
 		return
