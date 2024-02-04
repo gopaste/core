@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"net/http"
 
 	"github.com/Caixetadev/snippet/internal/entity"
 	"github.com/Caixetadev/snippet/internal/utils"
@@ -48,6 +49,10 @@ func (ps *PostService) Create(ctx context.Context, input *entity.PostInput) erro
 	}
 
 	if input.HasPassword {
+		if len(input.Password) < 3 {
+			return typesystem.NewHttpError("Password should have a minimum of 3 characters.", "[Error: password_length]", http.StatusBadRequest)
+		}
+
 		encryptedPassword, err := ps.passwordHasher.GenerateFromPassword([]byte(input.Password), 10)
 		if err != nil {
 			return typesystem.ServerError
