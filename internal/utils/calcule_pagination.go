@@ -34,7 +34,7 @@ func CalculePagination(count int, pageStr string) (*Page, error) {
 	offset := (page - 1) * limit
 
 	response := &Page{
-		Total:  (count / limit) + 1,
+		Total:  totalPages,
 		Page:   page,
 		Offset: offset,
 		Limit:  limit,
