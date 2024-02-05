@@ -23,7 +23,7 @@ type PostInput struct {
 	ExpirationAt    time.Time  `json:"expiration_at,omitempty"`
 	Password        string     `json:"password,omitempty"`
 	HasPassword     bool       `json:"has_password"`
-	Visibility      Visibility `json:"visibility" validate:"omitempty,oneof=private public unlisted"`
+	Visibility      Visibility `json:"visibility" validate:"required,oneof=private public unlisted"`
 	DeleteAfterView bool       `json:"delete_after_view"`
 }
 
