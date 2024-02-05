@@ -16,6 +16,24 @@ import (
 	"golang.org/x/net/context"
 )
 
+var (
+	ErrAccountRequired = typesystem.NewHttpError(
+		"Cannot create a private post without an account. Please log in or create an account.",
+		"[Error: Account required for private post]",
+		http.StatusUnauthorized,
+	)
+	ErrDeleteAndViewConflict = typesystem.NewHttpError(
+		"Cannot have both delete_after_view and expiration_at together",
+		"[Error: delete_after_view_conflict]",
+		http.StatusBadRequest,
+	)
+	ErrPasswordLength = typesystem.NewHttpError(
+		"Password should have a minimum of 3 characters.",
+		"[Error: password_length]",
+		http.StatusBadRequest,
+	)
+)
+
 type PostRepository interface {
 	Insert(ctx context.Context, post *entity.PostInput) error
 	FindAll(ctx context.Context, id uuid.UUID, limit int, offset int) ([]*entity.PostOutput, error)
@@ -50,16 +68,16 @@ func (ps *PostService) Create(ctx context.Context, input *entity.PostInput) erro
 	}
 
 	if *input.UserID == "" && input.Visibility == entity.Private {
-		return typesystem.NewHttpError("Cannot create a private post without an account. Please log in or create an account.", "[Error: Account required for private post]", http.StatusUnauthorized)
+		return ErrAccountRequired
 	}
 
 	if input.DeleteAfterView && !input.ExpirationAt.IsZero() {
-		return typesystem.NewHttpError("Cannot have both delete_after_view and expiration_at together", "[Error: delete_after_view_conflict]", http.StatusBadRequest)
+		return ErrDeleteAndViewConflict
 	}
 
 	if input.HasPassword {
 		if len(input.Password) < 3 {
-			return typesystem.NewHttpError("Password should have a minimum of 3 characters.", "[Error: password_length]", http.StatusBadRequest)
+			return ErrPasswordLength
 		}
 
 		encryptedPassword, err := ps.passwordHasher.GenerateFromPassword([]byte(input.Password), 10)
@@ -134,7 +152,10 @@ func (ps *PostService) GetPosts(
 	return posts, paginationInfo, nil
 }
 
-func (ps *PostService) GetAllPublics(ctx context.Context, pageStr string) ([]*entity.PostOutput, *entity.PaginationInfo, error) {
+func (ps *PostService) GetAllPublics(
+	ctx context.Context,
+	pageStr string,
+) ([]*entity.PostOutput, *entity.PaginationInfo, error) {
 	count, err := ps.postRepo.CountAllPostsPublics(ctx)
 	if err != nil {
 		return nil, nil, typesystem.ServerError
@@ -179,7 +200,7 @@ func (ps *PostService) DeletePost(ctx context.Context, id string, userID uuid.UU
 	}
 
 	if *post.UserID != userID.String() {
-		return typesystem.Unauthorized
+		return typesystem.Forbidden
 	}
 
 	err = ps.postRepo.Delete(ctx, id)
@@ -205,7 +226,7 @@ func (ps *PostService) UpdatePost(
 	}
 
 	if *postInDatabase.UserID != userID.String() {
-		return typesystem.Unauthorized
+		return typesystem.Forbidden
 	}
 
 	post.ID = postInDatabase.ID
@@ -256,7 +277,12 @@ func (ps *PostService) SearchPost(
 	return posts, paginationInfo, nil
 }
 
-func (ps *PostService) GetPost(ctx context.Context, id string, userID string, password string) (*entity.PostOutput, error) {
+func (ps *PostService) GetPost(
+	ctx context.Context,
+	id string,
+	userID string,
+	password string,
+) (*entity.PostOutput, error) {
 	post, err := ps.postRepo.FindOneByID(ctx, id)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
