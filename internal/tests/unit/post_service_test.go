@@ -258,7 +258,7 @@ func (suite *PostServiceTestSuite) TestDeletePost_UserNonAuth() {
 
 	err := suite.postService.DeletePost(ctx, postID, userIDNon)
 
-	suite.Equal(typesystem.Unauthorized, err)
+	suite.Equal(typesystem.Forbidden, err)
 
 	suite.mocksRepo.AssertExpectations(suite.T())
 }
