@@ -132,7 +132,7 @@ func (ps *PostHandler) DeletePost(ctx *gin.Context) {
 
 	id, err := uuid.Parse(userID)
 	if err != nil {
-		ctx.Error(typesystem.ServerError)
+		ctx.Error(typesystem.Unauthorized)
 		return
 	}
 
@@ -173,7 +173,7 @@ func (ps *PostHandler) UpdatePost(ctx *gin.Context) {
 
 	id, err := uuid.Parse(userID)
 	if err != nil {
-		ctx.Error(typesystem.ServerError)
+		ctx.Error(typesystem.Unauthorized)
 		return
 	}
 
