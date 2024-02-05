@@ -59,6 +59,29 @@ func (suite *PostServiceTestSuite) TestCreate() {
 	suite.validation.AssertExpectations(suite.T())
 }
 
+func (suite *PostServiceTestSuite) TestCreatePrivatePostByUnauthenticatedUser() {
+	ctx := context.TODO()
+
+	userID := ""
+
+	input := &entity.PostInput{
+		UserID:      &userID,
+		Title:       "Title",
+		Content:     "Body",
+		Visibility:  "private",
+		HasPassword: false,
+	}
+
+	suite.validation.On("Validate", mock.Anything).Return(nil).Once()
+	suite.mocksRepo.On("Insert", ctx, mock.AnythingOfType("*entity.PostInput")).Return(errors.New("error")).Once()
+
+	err := suite.postService.Create(ctx, input)
+
+	suite.Equal(services.ErrAccountRequired, err)
+
+	suite.validation.AssertExpectations(suite.T())
+}
+
 func (suite *PostServiceTestSuite) TestCreateWithDeleteAndViewConflict() {
 	ctx := context.TODO()
 
