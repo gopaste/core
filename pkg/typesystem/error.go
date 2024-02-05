@@ -16,6 +16,7 @@ var (
 	UserConflictError = NewHttpError("User conflict", "A user with the same email already exists", http.StatusConflict)
 
 	Unauthorized      = NewHttpError("Unauthorized", "Authentication failed or missing credentials", http.StatusUnauthorized)
+	Forbidden         = NewHttpError("Forbidden", "You do not have permission to access this resource.", http.StatusForbidden)
 	TokenInvalidError = NewHttpError("Token invalid", "The provided token is not valid", http.StatusUnauthorized)
 	TokenExpiredError = NewHttpError("Token expired", "The provided token has expired", http.StatusUnauthorized)
 	TokenRevokedError = NewHttpError("Token revoked", "The provided token has revoked", http.StatusUnauthorized)
