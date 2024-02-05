@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"testing"
+	"time"
 
 	"github.com/Caixetadev/snippet/internal/entity"
 	"github.com/Caixetadev/snippet/internal/services"
@@ -55,6 +56,30 @@ func (suite *PostServiceTestSuite) TestCreate() {
 	suite.NoError(err)
 
 	suite.mocksRepo.AssertExpectations(suite.T())
+	suite.validation.AssertExpectations(suite.T())
+}
+
+func (suite *PostServiceTestSuite) TestCreateWithDeleteAndViewConflict() {
+	ctx := context.TODO()
+
+	userID := "22c15b0d-5445-4c84-a52a-40888798d1d0"
+
+	input := &entity.PostInput{
+		UserID:          &userID,
+		Title:           "Title",
+		Content:         "Body",
+		HasPassword:     false,
+		DeleteAfterView: true,
+		ExpirationAt:    time.Now().Add(15 * time.Minute),
+	}
+
+	suite.validation.On("Validate", mock.Anything).Return(nil).Once()
+	suite.mocksRepo.On("Insert", ctx, mock.AnythingOfType("*entity.PostInput")).Return(errors.New("error"))
+
+	err := suite.postService.Create(ctx, input)
+
+	suite.Equal(services.ErrDeleteAndViewConflict, err)
+
 	suite.validation.AssertExpectations(suite.T())
 }
 
