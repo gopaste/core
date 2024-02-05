@@ -49,6 +49,10 @@ func (ps *PostService) Create(ctx context.Context, input *entity.PostInput) erro
 		return typesystem.BadRequest
 	}
 
+	if *input.UserID == "" && input.Visibility == "private" {
+		return typesystem.NewHttpError("Cannot create a private post without an account. Please log in or create an account.", "[Error: Account required for private post]", http.StatusUnauthorized)
+	}
+
 	if input.DeleteAfterView && !input.ExpirationAt.IsZero() {
 		return typesystem.NewHttpError("Cannot have both delete_after_view and expiration_at together", "[Error: delete_after_view_conflict]", http.StatusBadRequest)
 	}
