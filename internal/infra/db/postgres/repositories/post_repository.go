@@ -86,7 +86,7 @@ func (pr *postRepository) FindAllPublics(ctx context.Context, limit int, offset 
 		LIMIT $2 OFFSET $3;
 	`
 
-	line, err := pr.db.Query(ctx, query, "public", limit, offset)
+	line, err := pr.db.Query(ctx, query, entity.Public, limit, offset)
 	if err != nil {
 		return nil, err
 	}

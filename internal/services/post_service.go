@@ -49,7 +49,7 @@ func (ps *PostService) Create(ctx context.Context, input *entity.PostInput) erro
 		return typesystem.BadRequest
 	}
 
-	if *input.UserID == "" && input.Visibility == "private" {
+	if *input.UserID == "" && input.Visibility == entity.Private {
 		return typesystem.NewHttpError("Cannot create a private post without an account. Please log in or create an account.", "[Error: Account required for private post]", http.StatusUnauthorized)
 	}
 
@@ -275,7 +275,7 @@ func (ps *PostService) GetPost(ctx context.Context, id string, userID string, pa
 		defer ps.postRepo.Delete(ctx, post.ID)
 	}
 
-	if post.Visibility == "private" {
+	if post.Visibility == entity.Private {
 		if *post.UserID != userID {
 			return nil, typesystem.NotFound
 		}
