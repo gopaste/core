@@ -58,6 +58,30 @@ func (suite *PostServiceTestSuite) TestCreate() {
 	suite.validation.AssertExpectations(suite.T())
 }
 
+func (suite *PostServiceTestSuite) TestCreateValidatePasswordLength() {
+	ctx := context.TODO()
+
+	userID := "22c15b0d-5445-4c84-a52a-40888798d1d0"
+
+	input := &entity.PostInput{
+		UserID:      &userID,
+		Title:       "Title",
+		Content:     "Body",
+		Password:    "12",
+		Visibility:  "public",
+		HasPassword: true,
+	}
+
+	suite.validation.On("Validate", mock.Anything).Return(nil).Once()
+	suite.mocksRepo.On("Insert", ctx, mock.AnythingOfType("*entity.PostInput")).Return(errors.New("error")).Once()
+
+	err := suite.postService.Create(ctx, input)
+
+	suite.Equal(services.ErrPasswordLength, err)
+
+	suite.validation.AssertExpectations(suite.T())
+}
+
 func (suite *PostServiceTestSuite) TestCreatePrivate() {
 	ctx := context.TODO()
 
