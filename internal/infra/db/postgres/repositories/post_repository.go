@@ -79,7 +79,7 @@ func (pr *postRepository) FindAll(
 
 func (pr *postRepository) FindAllPublics(ctx context.Context, limit int, offset int) ([]*entity.PostOutput, error) {
 	query := `
-		SELECT id, user_id, title, created_at, has_password, visibility
+		SELECT id, user_id, title, created_at, has_password, visibility, expiration_at, delete_after_view
 		FROM posts
 		WHERE visibility = $1
 		ORDER BY created_at DESC
@@ -97,7 +97,7 @@ func (pr *postRepository) FindAllPublics(ctx context.Context, limit int, offset 
 
 	for line.Next() {
 		post := &entity.PostOutput{}
-		if err := line.Scan(&post.ID, &post.UserID, &post.Title, &post.CreatedAt, &post.HasPassword, &post.Visibility); err != nil {
+		if err := line.Scan(&post.ID, &post.UserID, &post.Title, &post.CreatedAt, &post.HasPassword, &post.Visibility, &post.ExpirationAt, &post.DeleteAfterView); err != nil {
 			return nil, err
 		}
 
