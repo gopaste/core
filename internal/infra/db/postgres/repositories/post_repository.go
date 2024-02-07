@@ -42,69 +42,86 @@ func (pr *postRepository) Insert(ctx context.Context, post *entity.PostInput) er
 	return err
 }
 
+const PAGINATION_LIMIT = 10
+
 func (pr *postRepository) FindAll(
 	ctx context.Context,
 	id uuid.UUID,
-	limit int,
-	offset int,
-) ([]*entity.PostOutput, error) {
+	page int,
+) ([]*entity.PostOutput, int, error) {
 	query := `
-		SELECT id, title, created_at, has_password, visibility
+		SELECT id, title, created_at, has_password, visibility,
+			count(*) OVER() AS full_count
 		FROM posts
 		WHERE user_id = $1
 		ORDER BY created_at DESC
 		LIMIT $2 OFFSET $3;
 	`
 
-	line, err := pr.db.Query(ctx, query, id, limit, offset)
+	offset := (page - 1) * PAGINATION_LIMIT
+
+	line, err := pr.db.Query(ctx, query, id, PAGINATION_LIMIT, offset)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
 	defer line.Close()
 
 	var posts []*entity.PostOutput
+	var count int
 
 	for line.Next() {
 		post := &entity.PostOutput{}
-		if err := line.Scan(&post.ID, &post.Title, &post.CreatedAt, &post.HasPassword, &post.Visibility); err != nil {
-			return nil, err
+		if err := line.Scan(&post.ID, &post.Title, &post.CreatedAt, &post.HasPassword, &post.Visibility, &count); err != nil {
+			return nil, 0, err
 		}
 
 		posts = append(posts, post)
 	}
 
-	return posts, nil
+	if len(posts) == 0 && count == 0 {
+		return nil, 0, sql.ErrNoRows
+	}
+
+	return posts, count, nil
 }
 
-func (pr *postRepository) FindAllPublics(ctx context.Context, limit int, offset int) ([]*entity.PostOutput, error) {
+func (pr *postRepository) FindAllPublics(ctx context.Context, page int) ([]*entity.PostOutput, int, error) {
 	query := `
-		SELECT id, user_id, title, created_at, has_password, visibility, expiration_at, delete_after_view
+		SELECT id, user_id, title, created_at, has_password, visibility, expiration_at, delete_after_view,
+			count(*) OVER() AS full_count
 		FROM posts
 		WHERE visibility = $1
 		ORDER BY created_at DESC
 		LIMIT $2 OFFSET $3;
 	`
 
-	line, err := pr.db.Query(ctx, query, entity.Public, limit, offset)
+	offset := (page - 1) * PAGINATION_LIMIT
+
+	line, err := pr.db.Query(ctx, query, entity.Public, PAGINATION_LIMIT, offset)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
 	defer line.Close()
 
 	var posts []*entity.PostOutput
+	var count int
 
 	for line.Next() {
 		post := &entity.PostOutput{}
-		if err := line.Scan(&post.ID, &post.UserID, &post.Title, &post.CreatedAt, &post.HasPassword, &post.Visibility, &post.ExpirationAt, &post.DeleteAfterView); err != nil {
-			return nil, err
+		if err := line.Scan(&post.ID, &post.UserID, &post.Title, &post.CreatedAt, &post.HasPassword, &post.Visibility, &post.ExpirationAt, &post.DeleteAfterView, &count); err != nil {
+			return nil, 0, err
 		}
 
 		posts = append(posts, post)
 	}
 
-	return posts, nil
+	if len(posts) == 0 && count == 0 {
+		return nil, 0, sql.ErrNoRows
+	}
+
+	return posts, count, nil
 }
 
 func (pr *postRepository) CountUserPosts(ctx context.Context, id uuid.UUID) (int, error) {
@@ -209,32 +226,49 @@ func (pr *postRepository) Update(ctx context.Context, post *entity.PostUpdateInp
 	return nil
 }
 
-func (pr *postRepository) Search(ctx context.Context, q string, limit int, offset int) ([]*entity.PostOutput, error) {
+func (pr *postRepository) Search(ctx context.Context, q string, page int) ([]*entity.PostOutput, int, error) {
 	query := `
-		SELECT id, user_id, title, content, has_password, created_at
+		SELECT id, user_id, title, content, has_password, created_at,
+			count(*) OVER() AS full_count
 		FROM posts
 		WHERE (title ILIKE '%' || $1 || '%' OR content ILIKE '%' || $1 || '%') AND visibility = 'public'
 		ORDER BY created_at DESC, id DESC
 		LIMIT $2 OFFSET $3;
 	`
 
-	line, err := pr.db.Query(ctx, query, q, limit, offset)
+	offset := (page - 1) * PAGINATION_LIMIT
+
+	line, err := pr.db.Query(ctx, query, q, PAGINATION_LIMIT, offset)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
 	defer line.Close()
 
 	var posts []*entity.PostOutput
+	var count int
 
 	for line.Next() {
 		post := &entity.PostOutput{}
-		if err := line.Scan(&post.ID, &post.UserID, &post.Title, &post.Content, &post.HasPassword, &post.CreatedAt); err != nil {
-			return nil, err
+
+		if err := line.Scan(
+			&post.ID,
+			&post.UserID,
+			&post.Title,
+			&post.Content,
+			&post.HasPassword,
+			&post.CreatedAt,
+			&count,
+		); err != nil {
+			return nil, 0, err
 		}
 
 		posts = append(posts, post)
 	}
 
-	return posts, nil
+	if len(posts) == 0 && count == 0 {
+		return nil, 0, sql.ErrNoRows
+	}
+
+	return posts, count, nil
 }

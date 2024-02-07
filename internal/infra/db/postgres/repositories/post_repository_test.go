@@ -25,11 +25,8 @@ func BenchmarkSearch(b *testing.B) {
 	// Substitua esta string de consulta conforme necessário
 	query := "CAIXETA"
 
-	limit := 10
-	offset := 0
-
 	for i := 0; i < b.N; i++ {
-		_, err := repo.Search(context.Background(), query, limit, offset)
+		_, _, err := repo.Search(context.Background(), query, 1)
 		if err != nil {
 			b.Fatal(err)
 		}
