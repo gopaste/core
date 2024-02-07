@@ -5,10 +5,11 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/Caixetadev/snippet/internal/entity"
-	"github.com/Caixetadev/snippet/internal/utils"
+	"github.com/Caixetadev/snippet/internal/pagination"
 	"github.com/Caixetadev/snippet/pkg/passwordhash"
 	"github.com/Caixetadev/snippet/pkg/typesystem"
 	"github.com/Caixetadev/snippet/pkg/validation"
@@ -36,15 +37,15 @@ var (
 
 type PostRepository interface {
 	Insert(ctx context.Context, post *entity.PostInput) error
-	FindAll(ctx context.Context, id uuid.UUID, limit int, offset int) ([]*entity.PostOutput, error)
-	FindAllPublics(ctx context.Context, limit int, offset int) ([]*entity.PostOutput, error)
+	FindAll(ctx context.Context, id uuid.UUID, page int) ([]*entity.PostOutput, int, error)
+	FindAllPublics(ctx context.Context, page int) ([]*entity.PostOutput, int, error)
 	Delete(ctx context.Context, id string) error
 	CountUserPosts(ctx context.Context, id uuid.UUID) (int, error)
 	CountAllPostsPublics(ctx context.Context) (int, error)
 	CountPostsInSearch(ctx context.Context, query string) (int, error)
 	FindOneByID(ctx context.Context, id string) (*entity.PostOutput, error)
 	Update(ctx context.Context, post *entity.PostUpdateInput) error
-	Search(ctx context.Context, query string, limit int, offset int) ([]*entity.PostOutput, error)
+	Search(ctx context.Context, query string, page int) ([]*entity.PostOutput, int, error)
 }
 
 type PostService struct {
@@ -119,34 +120,22 @@ func (ps *PostService) GetPosts(
 	id uuid.UUID,
 	pageStr string,
 ) ([]*entity.PostOutput, *entity.PaginationInfo, error) {
-	count, err := ps.postRepo.CountUserPosts(ctx, id)
-	if err != nil {
+	page, err := strconv.Atoi(pageStr)
+	if err != nil || page < 1 {
 		return nil, nil, typesystem.ServerError
 	}
 
-	pageResponse, err := utils.CalculePagination(count, pageStr)
+	posts, count, err := ps.postRepo.FindAll(ctx, id, page)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil, typesystem.NotFound
+		}
+		return nil, nil, typesystem.ServerError
+	}
+
+	paginationInfo, err := pagination.GeneratePaginationInfo(count, page, "/post/user/all")
 	if err != nil {
 		return nil, nil, err
-	}
-
-	posts, err := ps.postRepo.FindAll(ctx, id, pageResponse.Limit, pageResponse.Offset)
-	if err != nil {
-		return nil, nil, typesystem.ServerError
-	}
-
-	nextPage, prevPage := "", ""
-	if len(posts) == pageResponse.Limit {
-		nextPage = fmt.Sprintf("/post/all?page=%d", pageResponse.Page+1)
-	}
-	if pageResponse.Page > 1 {
-		prevPage = fmt.Sprintf("/post/all?page=%d", pageResponse.Page-1)
-	}
-
-	paginationInfo := &entity.PaginationInfo{
-		Next:  utils.StringToPtr(nextPage),
-		Prev:  utils.StringToPtr(prevPage),
-		Pages: pageResponse.Total,
-		Count: count,
 	}
 
 	return posts, paginationInfo, nil
@@ -156,35 +145,22 @@ func (ps *PostService) GetAllPublics(
 	ctx context.Context,
 	pageStr string,
 ) ([]*entity.PostOutput, *entity.PaginationInfo, error) {
-	count, err := ps.postRepo.CountAllPostsPublics(ctx)
-	if err != nil {
+	page, err := strconv.Atoi(pageStr)
+	if err != nil || page < 1 {
 		return nil, nil, typesystem.ServerError
 	}
 
-	pageResponse, err := utils.CalculePagination(count, pageStr)
+	posts, count, err := ps.postRepo.FindAllPublics(ctx, page)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil, typesystem.NotFound
+		}
+		return nil, nil, typesystem.ServerError
+	}
+
+	paginationInfo, err := pagination.GeneratePaginationInfo(count, page, "/post/all")
 	if err != nil {
 		return nil, nil, err
-	}
-
-	posts, err := ps.postRepo.FindAllPublics(ctx, pageResponse.Limit, pageResponse.Offset)
-	if err != nil {
-		return nil, nil, typesystem.ServerError
-	}
-
-	nextPage, prevPage := "", ""
-	if len(posts) == pageResponse.Limit {
-		nextPage = fmt.Sprintf("/post/all?page=%d", pageResponse.Page+1)
-	}
-
-	if pageResponse.Page > 1 {
-		prevPage = fmt.Sprintf("/post/all?page=%d", pageResponse.Page-1)
-	}
-
-	paginationInfo := &entity.PaginationInfo{
-		Next:  utils.StringToPtr(nextPage),
-		Prev:  utils.StringToPtr(prevPage),
-		Pages: pageResponse.Total,
-		Count: count,
 	}
 
 	return posts, paginationInfo, nil
@@ -244,34 +220,22 @@ func (ps *PostService) SearchPost(
 	query string,
 	pageStr string,
 ) ([]*entity.PostOutput, *entity.PaginationInfo, error) {
-	count, err := ps.postRepo.CountPostsInSearch(ctx, query)
-	if err != nil {
+	page, err := strconv.Atoi(pageStr)
+	if err != nil || page < 1 {
 		return nil, nil, typesystem.ServerError
 	}
 
-	pageResponse, err := utils.CalculePagination(count, pageStr)
+	posts, count, err := ps.postRepo.Search(ctx, query, page)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil, typesystem.NotFound
+		}
+		return nil, nil, typesystem.ServerError
+	}
+
+	paginationInfo, err := pagination.GeneratePaginationInfo(count, page, fmt.Sprintf("/post/search?q=%s&", query))
 	if err != nil {
 		return nil, nil, err
-	}
-
-	posts, err := ps.postRepo.Search(ctx, query, pageResponse.Limit, pageResponse.Offset)
-	if err != nil {
-		return nil, nil, typesystem.ServerError
-	}
-
-	nextPage, prevPage := "", ""
-	if len(posts) == pageResponse.Limit {
-		nextPage = fmt.Sprintf("/post/search?q=%s&page=%d", query, pageResponse.Page+1)
-	}
-	if pageResponse.Page > 1 {
-		prevPage = fmt.Sprintf("/post/search?q=%s&page=%d", query, pageResponse.Page-1)
-	}
-
-	paginationInfo := &entity.PaginationInfo{
-		Next:  utils.StringToPtr(nextPage),
-		Prev:  utils.StringToPtr(prevPage),
-		Pages: pageResponse.Total,
-		Count: count,
 	}
 
 	return posts, paginationInfo, nil
@@ -297,6 +261,13 @@ func (ps *PostService) GetPost(
 		return nil, typesystem.NotFound
 	}
 
+	if post.HasPassword {
+		err := ps.passwordHasher.CompareHashAndPassword([]byte(post.Password), []byte(password))
+		if err != nil {
+			return nil, typesystem.Unauthorized
+		}
+	}
+
 	if post.DeleteAfterView {
 		defer ps.postRepo.Delete(ctx, post.ID)
 	}
@@ -304,13 +275,6 @@ func (ps *PostService) GetPost(
 	if post.Visibility == entity.Private {
 		if *post.UserID != userID {
 			return nil, typesystem.NotFound
-		}
-	}
-
-	if post.HasPassword {
-		err := ps.passwordHasher.CompareHashAndPassword([]byte(post.Password), []byte(password))
-		if err != nil {
-			return nil, typesystem.Unauthorized
 		}
 	}
 
