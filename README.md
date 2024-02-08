@@ -2,4 +2,4 @@
 
 [![](https://github.com/Caixetadev/pastebin/blob/main/.github/workflows/test.yml/badge.svg)](https://github.com/Caixetadev/pastebin/blob/main/.github/workflows/test.yml)
 
-# Gopaste
+# Paste
