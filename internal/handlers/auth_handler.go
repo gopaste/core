@@ -226,29 +226,9 @@ func (ac *AuthHandler) RefreshToken(ctx *gin.Context) {
 		return
 	}
 
-	session, err := ac.UserService.GetSession(ctx, refreshPayload.ID)
+	session, err := ac.UserService.GetSession(ctx, refreshPayload, refreshToken)
 	if err != nil {
 		ctx.Error(err)
-		return
-	}
-
-	if session.IsRevoked {
-		ctx.Error(typesystem.TokenRevokedError)
-		return
-	}
-
-	if session.IsBlocked {
-		ctx.Error(typesystem.Unauthorized)
-		return
-	}
-
-	if session.Name != refreshPayload.Username {
-		ctx.Error(typesystem.Unauthorized)
-		return
-	}
-
-	if session.RefreshToken != refreshToken {
-		ctx.Error(typesystem.Unauthorized)
 		return
 	}
 

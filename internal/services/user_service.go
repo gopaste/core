@@ -182,8 +182,8 @@ func (us *UserService) UpdatePassword(
 	return nil
 }
 
-func (us *UserService) GetSession(ctx context.Context, id uuid.UUID) (*entity.Session, error) {
-	user, err := us.userRepository.GetSession(ctx, id)
+func (us *UserService) GetSession(ctx context.Context, refreshPayload *entity.Payload, refreshToken string) (*entity.Session, error) {
+	session, err := us.userRepository.GetSession(ctx, refreshPayload.ID)
 	if err != nil {
 		if err == pgx.ErrNoRows {
 			return nil, typesystem.NotFound
@@ -191,7 +191,23 @@ func (us *UserService) GetSession(ctx context.Context, id uuid.UUID) (*entity.Se
 		return nil, typesystem.ServerError
 	}
 
-	return user, nil
+	if session.RefreshToken != refreshToken {
+		return nil, typesystem.Unauthorized
+	}
+
+	if session.Name != refreshPayload.Username {
+		return nil, typesystem.Unauthorized
+	}
+
+	if session.IsRevoked {
+		return nil, typesystem.TokenRevokedError
+	}
+
+	if session.IsBlocked {
+		return nil, typesystem.Unauthorized
+	}
+
+	return session, nil
 }
 
 func (us *UserService) VerifyToken(ctx context.Context, token string) (*entity.Payload, error) {
